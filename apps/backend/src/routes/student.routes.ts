@@ -3,14 +3,14 @@
  * API routes for student registration and management
  */
 
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import {
     registerStudent,
     getStudent,
     createReview,
 } from '../controllers/student.controller.js';
 
-const router = Router();
+const router: RouterType = Router();
 
 // Register or login student
 router.post('/register', registerStudent);
