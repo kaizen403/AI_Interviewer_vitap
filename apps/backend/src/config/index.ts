@@ -22,7 +22,7 @@ const envSchema = z.object({
   // LiveKit
   LIVEKIT_API_KEY: z.string().min(1, 'LIVEKIT_API_KEY is required'),
   LIVEKIT_API_SECRET: z.string().min(1, 'LIVEKIT_API_SECRET is required'),
-  LIVEKIT_URL: z.string().url().or(z.string().startsWith('ws')),
+  LIVEKIT_URL: z.string().regex(/^wss?:\/\//, 'LIVEKIT_URL must start with ws:// or wss://'),
 
   // LLM Provider
   OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
