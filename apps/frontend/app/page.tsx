@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getBackendUrl } from '@/lib/api-config';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3040';
+const BACKEND_URL = getBackendUrl();
 
 export default function Home() {
   const router = useRouter();

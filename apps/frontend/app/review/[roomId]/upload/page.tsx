@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { getBackendUrl } from '@/lib/api-config';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3040';
+const BACKEND_URL = getBackendUrl();
 
 interface Student {
     id: string;
@@ -184,10 +185,10 @@ export default function UploadPage() {
                         onDragOver={handleDrag}
                         onDrop={handleDrop}
                         className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${dragActive
-                                ? 'border-blue-500 bg-blue-500/10'
-                                : file
-                                    ? 'border-green-500 bg-green-500/10'
-                                    : 'border-gray-600 hover:border-gray-500'
+                            ? 'border-blue-500 bg-blue-500/10'
+                            : file
+                                ? 'border-green-500 bg-green-500/10'
+                                : 'border-gray-600 hover:border-gray-500'
                             }`}
                     >
                         {file ? (

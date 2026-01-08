@@ -17,10 +17,11 @@ import { config } from '@/lib';
 import { MobileBlockScreen, useIsMobile } from '@/components/ui';
 import { ReviewLobby } from './ReviewLobby';
 import { ReviewMeeting } from './ReviewMeeting';
+import { getBackendUrl } from '@/lib/api-config';
 
 import '@livekit/components-styles';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3040';
+const BACKEND_URL = getBackendUrl();
 
 interface Review {
   id: string;

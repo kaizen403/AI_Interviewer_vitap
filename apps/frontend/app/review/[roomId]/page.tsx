@@ -9,8 +9,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ProjectReviewRoom } from '@/components/project-review';
+import { getBackendUrl } from '@/lib/api-config';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3040';
+const BACKEND_URL = getBackendUrl();
 
 interface Student {
   id: string;

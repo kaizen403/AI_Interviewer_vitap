@@ -11,8 +11,9 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getBackendUrl } from '@/lib/api-config';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3040';
+const BACKEND_URL = getBackendUrl();
 
 interface Summary {
   review: {
