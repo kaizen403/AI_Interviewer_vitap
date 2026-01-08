@@ -1,7 +1,24 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Proxy API requests to internal backend
+  async rewrites() {
+    const backendUrl = process.env.INTERNAL_BACKEND_URL || 'http://localhost:3040';
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
+      },
+      {
+        source: '/uploads/:path*',
+        destination: `${backendUrl}/uploads/:path*`,
+      },
+      {
+        source: '/health',
+        destination: `${backendUrl}/health`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
