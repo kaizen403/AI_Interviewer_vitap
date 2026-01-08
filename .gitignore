@@ -1,0 +1,62 @@
+# ============================================
+# Dependencies
+# ============================================
+node_modules/
+.pnpm-store/
+**/node_modules/
+
+# ============================================
+# Build outputs
+# ============================================
+dist/
+.next/
+out/
+build/
+
+# ============================================
+# Environment files (keep examples)
+# ============================================
+.env
+.env.local
+.env.production
+.env.development
+.env.*.local
+!.env.example
+!.env.*.example
+
+# ============================================
+# Development & IDE
+# ============================================
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ============================================
+# Testing
+# ============================================
+coverage/
+.vitest/
+
+# ============================================
+# Prisma (keep schema, ignore generated)
+# ============================================
+apps/backend/src/generated/
+
+# ============================================
+# Uploads & Cache
+# ============================================
+apps/backend/uploads/
+.cache/
+*.tsbuildinfo
+
+# ============================================
+# Lock files from wrong package managers
+# ============================================
+package-lock.json
+yarn.lock
