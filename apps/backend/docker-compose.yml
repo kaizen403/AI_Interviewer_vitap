@@ -1,0 +1,50 @@
+# =============================================================================
+# Interview Pendent Backend - Development Docker Compose
+# =============================================================================
+# 
+# Start all services:    docker compose up -d
+# Stop all services:     docker compose down
+# View logs:             docker compose logs -f
+# Reset data:            docker compose down -v
+#
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:17
+    container_name: interview-pendent-be-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: interview_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d interview_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # LiveKit Server (Development)
+  # NOTE: Using host network mode for proper WebRTC/ICE connectivity
+  # ---------------------------------------------------------------------------
+  livekit:
+    container_name: interview-pendent-be-livekit
+    image: livekit/livekit-server:v1.9
+    command: --dev --bind 0.0.0.0
+    network_mode: host
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: interview-pendent-be-network

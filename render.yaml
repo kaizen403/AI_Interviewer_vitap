@@ -1,0 +1,64 @@
+# Render Blueprint - Capstone Reviewer (Single Service)
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: capstone-reviewer
+    runtime: docker
+    region: singapore
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      # Environment
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_PORT
+        value: 3000
+      
+      # Frontend URLs (internal routing)
+      - key: FRONTEND_URL
+        value: http://localhost:3000
+      - key: NEXT_PUBLIC_BACKEND_URL
+        value: https://capstone-reviewer.onrender.com
+      - key: BACKEND_URL
+        value: http://localhost:10000
+      
+      # Database (Neon PostgreSQL)
+      - key: DATABASE_URL
+        value: postgresql://rishivhavle21:zhX1Q4JcApBy@ep-winter-meadow-a1heyhj6.ap-southeast-1.aws.neon.tech/cap?sslmode=require&channel_binding=require
+      
+      # LiveKit Cloud
+      - key: LIVEKIT_URL
+        value: wss://aiscreener-nty8rvyj.livekit.cloud
+      - key: LIVEKIT_API_KEY
+        value: APIVniEojENq26U
+      - key: LIVEKIT_API_SECRET
+        value: mtfKjWNMOqVZCpBTR9qbDiJyTLGlewiYWtDR3ZcdAwu
+      - key: NEXT_PUBLIC_LIVEKIT_URL
+        value: wss://aiscreener-nty8rvyj.livekit.cloud
+      
+      # AI APIs (set these in Render dashboard)
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DEEPGRAM_API_KEY
+        sync: false
+      - key: CARTESIA_API_KEY
+        sync: false
+      
+      # Voice Config
+      - key: TTS_PROVIDER
+        value: cartesia
+      - key: TTS_MODEL
+        value: sonic-3
+      - key: TTS_VOICE_ID
+        value: 6303e5fb-a0a7-48f9-bb1a-dd42c216dc5d
+      - key: STT_PROVIDER
+        value: deepgram
+      - key: STT_MODEL
+        value: nova-2
+      - key: LLM_MODEL
+        value: gpt-4o-mini

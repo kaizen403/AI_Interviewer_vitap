@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+:root {
+  /* Background colors - warm off-white palette */
+  --background: #faf9f7;
+  --background-secondary: #f5f4f1;
+  --background-muted: #efeee9;
+  
+  /* Text colors - warm charcoal tones */
+  --foreground: #1c1c1a;
+  --text-primary: #2d2d2a;
+  --text-secondary: #5c5c57;
+  --text-muted: #7a7a74;
+  --text-subtle: #a3a39c;
+  
+  /* Border colors - warm neutrals */
+  --border: #e0dfd8;
+  --border-muted: #d4d3cb;
+  
+  /* Primary brand colors - charcoal gray */
+  --primary: #4a4a48;
+  --primary-hover: #3a3a38;
+  --primary-light: #f0f0ef;
+  --primary-dark: #2a2a28;
+  
+  /* Success colors - muted green */
+  --success: #4a9d6b;
+  --success-hover: #3d8459;
+  --success-light: #e6f4eb;
+  
+  /* Destructive/Error colors - softer red */
+  --destructive: #c45a5a;
+  --destructive-hover: #a84848;
+  --destructive-light: #fae8e8;
+  
+  /* Warning colors - warm amber */
+  --warning: #d4943a;
+  --warning-hover: #b87d2e;
+  --warning-light: #fdf4e6;
+  
+  /* Neutral warm gray scale */
+  --gray-50: #faf9f7;
+  --gray-100: #f5f4f1;
+  --gray-200: #e8e7e2;
+  --gray-300: #d4d3cb;
+  --gray-400: #a3a39c;
+  --gray-500: #7a7a74;
+  --gray-600: #5c5c57;
+  --gray-700: #3d3d3a;
+  --gray-800: #2d2d2a;
+  --gray-900: #1c1c1a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-background-muted: var(--background-muted);
+  --color-foreground: var(--foreground);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-border: var(--border);
+  --color-border-muted: var(--border-muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-success-light: var(--success-light);
+  --color-destructive: var(--destructive);
+  --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-light: var(--destructive-light);
+  --color-warning: var(--warning);
+  --color-warning-hover: var(--warning-hover);
+  --color-warning-light: var(--warning-light);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Keep same off-white theme for consistency */
+    --background: #faf9f7;
+    --background-secondary: #f5f4f1;
+    --background-muted: #efeee9;
+    --foreground: #1c1c1a;
+    --text-primary: #2d2d2a;
+    --text-secondary: #5c5c57;
+    --text-muted: #7a7a74;
+    --text-subtle: #a3a39c;
+    --border: #e0dfd8;
+    --border-muted: #d4d3cb;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Animations */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.2s ease-out;
+}

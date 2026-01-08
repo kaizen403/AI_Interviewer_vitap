@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: capstone_reviewer_db
+    environment:
+      POSTGRES_USER: capstone
+      POSTGRES_PASSWORD: capstone123
+      POSTGRES_DB: capstone_reviewer
+    ports:
+      - "5433:5432"
+    volumes:
+      - capstone_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U capstone -d capstone_reviewer" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  capstone_pgdata:

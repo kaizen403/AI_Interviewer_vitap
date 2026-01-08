@@ -1,0 +1,118 @@
+// ============================================
+// CAPSTONE REVIEWER - Prisma Schema
+// ============================================
+
+generator client {
+    provider     = "prisma-client-js"
+    output       = "../src/generated/prisma"
+    moduleFormat = "esm"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum ProjectReviewStatus {
+    pending // Student registered, not started
+    upload_required // Waiting for PPT upload
+    processing // PPT being processed
+    ready // Ready to start review
+    in_progress // Review in progress
+    completed // Review completed
+    cancelled
+}
+
+enum AIContentResult {
+    likely_ai
+    possibly_ai
+    likely_human
+    uncertain
+}
+
+// ============================================
+// STUDENTS (VIT AP)
+// ============================================
+
+model Student {
+    id        String   @id @default(uuid())
+    email     String   @unique
+    name      String
+    regNo     String   @map("reg_no")
+    photoUrl  String?  @map("photo_url") @db.Text
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    projectReviews ProjectReview[]
+
+    @@map("students")
+}
+
+// ============================================
+// PROJECT REVIEWS
+// ============================================
+
+model ProjectReview {
+    id        String @id @default(uuid())
+    roomId    String @unique @map("room_id")
+    studentId String @map("student_id")
+
+    // Project Info
+    projectTitle       String  @map("project_title")
+    projectDescription String? @map("project_description") @db.Text
+    githubUrl          String? @map("github_url")
+
+    // PPT Info
+    pptFileName   String?   @map("ppt_file_name")
+    pptFileUrl    String?   @map("ppt_file_url") @db.Text
+    pptFileSize   Int?      @map("ppt_file_size")
+    pptUploadedAt DateTime? @map("ppt_uploaded_at")
+    pptContent    String?   @map("ppt_content") @db.Text // Extracted text from PPT
+
+    // Timing
+    startedAt   DateTime? @map("started_at")
+    completedAt DateTime? @map("completed_at")
+    duration    Int?      @default(30)
+
+    // Status
+    status    ProjectReviewStatus @default(pending)
+    createdAt DateTime            @default(now()) @map("created_at")
+    updatedAt DateTime            @updatedAt @map("updated_at")
+
+    student Student              @relation(fields: [studentId], references: [id])
+    report  ProjectReviewReport?
+
+    @@map("project_reviews")
+}
+
+// ============================================
+// PROJECT REVIEW REPORTS
+// ============================================
+
+model ProjectReviewReport {
+    id                    String           @id @default(uuid())
+    reviewId              String           @unique @map("review_id")
+    aiDetectionResult     AIContentResult? @map("ai_detection_result")
+    aiDetectionConfidence Float?           @map("ai_detection_confidence")
+    aiDetectionSummary    String?          @map("ai_detection_summary") @db.Text
+    totalQuestions        Int?             @default(0) @map("total_questions")
+    easyQuestions         Int?             @default(0) @map("easy_questions")
+    mediumQuestions       Int?             @default(0) @map("medium_questions")
+    hardQuestions         Int?             @default(0) @map("hard_questions")
+    overallScore          Float?           @map("overall_score")
+    understandingScore    Float?           @map("understanding_score")
+    clarityScore          Float?           @map("clarity_score")
+    depthScore            Float?           @map("depth_score")
+    strengths             Json             @default("[]")
+    improvements          Json             @default("[]")
+    summary               String?          @db.Text
+    durationSeconds       Int?             @map("duration_seconds")
+    createdAt             DateTime         @default(now()) @map("created_at")
+
+    review ProjectReview @relation(fields: [reviewId], references: [id])
+
+    @@map("project_review_reports")
+}
