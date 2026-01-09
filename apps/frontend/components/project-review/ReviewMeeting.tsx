@@ -16,6 +16,7 @@ import {
   TrackRefContext,
   useConnectionState,
   useRoomContext,
+  RoomAudioRenderer, // Ensures all audio tracks play automatically
 } from '@livekit/components-react';
 import { Track, RoomEvent, ConnectionState } from 'livekit-client';
 import { Button } from '@/components/ui/button';
@@ -334,7 +335,9 @@ export function ReviewMeeting({ review, onEnd }: ReviewMeetingProps) {
         </div>
       </main>
 
-      {/* Audio tracks (hidden) */}
+      {/* Audio tracks - RoomAudioRenderer automatically plays all remote audio */}
+      <RoomAudioRenderer />
+      {/* Fallback: Manual audio tracks in case RoomAudioRenderer has issues */}
       {remoteAudioTracks.map((trackRef) => (
         trackRef.publication?.track && (
           <TrackRefContext.Provider value={trackRef} key={trackRef.publication.trackSid}>
