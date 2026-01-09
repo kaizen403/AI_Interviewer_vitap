@@ -155,6 +155,15 @@ export function ProjectReviewRoom({ roomId, studentId, review }: ProjectReviewRo
         connect={true}
         audio={true}
         video={true}
+        // Connection options for better reliability
+        options={{
+          // Adaptive streaming for better network handling
+          adaptiveStream: true,
+          // Disconnect on page hide (mobile)
+          disconnectOnPageLeave: true,
+          // Enable dynacast for bandwidth optimization
+          dynacast: true,
+        }}
       >
         <ReviewMeeting
           review={{

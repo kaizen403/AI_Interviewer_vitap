@@ -13,17 +13,17 @@ export function MobileBlockScreen() {
       <div className="text-center max-w-md">
         {/* Laptop Icon */}
         <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-          <svg 
-            className="w-12 h-12 text-gray-500" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className="w-12 h-12 text-gray-500"
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={1.5} 
-              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
             />
           </svg>
         </div>
@@ -33,7 +33,7 @@ export function MobileBlockScreen() {
         </h1>
 
         <p className="text-gray-600 mb-6">
-          For the best interview experience, please join from a laptop or desktop computer with a camera and microphone.
+          For the best review experience, please join from a laptop or desktop computer with a camera and microphone.
         </p>
 
         <div className="bg-gray-50 rounded-xl p-4 text-left space-y-2">
@@ -95,16 +95,16 @@ export function useIsMobile(): boolean | null {
         'opera mini',
         'mobile',
       ];
-      
+
       const isMobileUA = mobileKeywords.some(keyword => userAgent.includes(keyword));
       const isSmallScreen = window.innerWidth < 768;
-      
+
       setIsMobile(isMobileUA || isSmallScreen);
     };
 
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 

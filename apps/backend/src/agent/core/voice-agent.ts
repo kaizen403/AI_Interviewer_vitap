@@ -404,21 +404,21 @@ export abstract class BaseVoiceAgent<
         llm,
         tts,
         turnDetection,
-        // Voice options for noise-resistant behavior
+        // Voice options OPTIMIZED FOR LOW LATENCY
         voiceOptions: {
-          // Require longer silence before considering user's speech ended (in seconds)
-          minEndpointingDelay: (vadConfig?.minSilenceDurationMs || 1200) / 1000,
+          // Faster endpointing - reduced from 1.2s to 0.6s
+          minEndpointingDelay: (vadConfig?.minSilenceDurationMs || 600) / 1000,
           maxEndpointingDelay:
-            (vadConfig?.minSilenceDurationMs || 1200) / 1000 + 1,
+            (vadConfig?.minSilenceDurationMs || 600) / 1000 + 0.5,
 
-          // Require longer speech before counting as interruption (in seconds)
+          // Shorter speech required before interruption (250ms)
           minInterruptionDuration:
-            (vadConfig?.minSpeechDurationMs || 500) / 1000,
+            (vadConfig?.minSpeechDurationMs || 250) / 1000,
 
-          // Require at least 3 words before considering it an interruption
-          minInterruptionWords: 3,
+          // Only 2 words needed to interrupt (faster response)
+          minInterruptionWords: 2,
 
-          // Allow interruptions (but with stricter thresholds above)
+          // Allow interruptions for natural conversation
           allowInterruptions: true,
         },
       });
@@ -519,12 +519,11 @@ export abstract class BaseVoiceAgent<
       // IMMEDIATELY speak a greeting before running the graph
       // This ensures the user hears something right away
       if (this.session) {
-        const candidateName = roomMetadata.candidateName || "Students";
-        const jobRole = roomMetadata.jobRole || "this position";
-        const interviewerName =
-          roomMetadata.agentConfig?.interviewerName || "Sibi";
+        const candidateName = roomMetadata.candidateName || "there";
+        const reviewerName =
+          roomMetadata.agentConfig?.interviewerName || "your AI Reviewer";
 
-        const greeting = `Hello ${candidateName}! I hope everyone is present for the project review. I'm ${interviewerName}, and I'll be conducting your interview today. Let me just review what you guys have uploaded, and then we'll get started with some questions.`;
+        const greeting = `Hello ${candidateName}! Welcome to your capstone project review session. I'm ${reviewerName}, and I'll be reviewing your presentation today. Let me just analyze what you've uploaded, and then we'll get started with some questions about your project.`;
 
         console.log(
           `[${this.config.name}] 💬 Speaking greeting immediately...`,
@@ -711,37 +710,23 @@ export abstract class BaseVoiceAgent<
 
   /**
    * Create STT instance based on config
-   * Includes diarization for speaker identification and noise reduction
+   * Using Deepgram nova-2 - Cartesia STT not yet available in Node.js plugin
    */
   protected createSTT(): deepgram.STT {
     const { stt } = this.config;
 
-    // Build STT options with diarization and noise suppression
+    // Optimized Deepgram settings for low latency
     const sttOptions: any = {
       model: stt.model as any,
       language: stt.language,
       punctuate: stt.punctuate ?? true,
       smartFormat: stt.smartFormat ?? true,
+      // Fast utterance end detection for quicker turn-taking
+      endpointing: 300, // 300ms silence to end utterance
+      interimResults: true, // Get faster interim results
     };
 
-    // Enable diarization if configured (identifies different speakers)
-    if (stt.diarize) {
-      sttOptions.diarize = true;
-      this.logger.info(
-        "🎙️ Diarization enabled - will identify different speakers",
-      );
-    }
-
-    // Enable utterance-level results for speaker labels
-    if (stt.utterances) {
-      sttOptions.utterances = true;
-    }
-
-    // Configure utterance end detection (helps prevent cutting off)
-    if (stt.utteranceEndMs) {
-      sttOptions.utteranceEndMs = stt.utteranceEndMs;
-    }
-
+    this.logger.info("🎙️ Using Deepgram STT (nova-2) with optimized settings");
     this.logger.debug("STT configuration", sttOptions);
 
     return new deepgram.STT(sttOptions);

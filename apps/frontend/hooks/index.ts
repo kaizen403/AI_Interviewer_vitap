@@ -17,12 +17,3 @@ export {
   type MediaDeviceInfo,
   type UseMediaDevicesReturn,
 } from './livekit';
-
-// Interview hooks
-export {
-  useInterviewRoom,
-  type InterviewStage,
-  type MediaSettings,
-  type UseInterviewRoomOptions,
-  type UseInterviewRoomReturn,
-} from './interview';

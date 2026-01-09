@@ -171,7 +171,20 @@ export function ReviewMeeting({ review, onEnd }: ReviewMeetingProps) {
     );
   }
 
-  // Disconnected state (failed to connect or reconnecting)
+  // Reconnecting state - show user-friendly message with retry option
+  if (connectionState === ConnectionState.Reconnecting) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-yellow-500 animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg mb-2">Reconnecting...</p>
+          <p className="text-gray-400 mb-4">Please wait while we restore the connection</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Disconnected state (failed to connect)
   if (connectionState === ConnectionState.Disconnected && !hasConnectedRef.current) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -181,9 +194,21 @@ export function ReviewMeeting({ review, onEnd }: ReviewMeetingProps) {
           </div>
           <p className="text-white text-lg mb-2">Connection Failed</p>
           <p className="text-gray-400 mb-4">Unable to connect to the review session</p>
-          <Button variant="outline" onClick={onEnd}>
-            Go Back
-          </Button>
+          <p className="text-gray-500 text-sm mb-4">
+            This may be due to network restrictions. Try a different network or browser.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <Button
+              variant="default"
+              onClick={() => window.location.reload()}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Retry Connection
+            </Button>
+            <Button variant="outline" onClick={onEnd}>
+              Go Back
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -232,7 +257,7 @@ export function ReviewMeeting({ review, onEnd }: ReviewMeetingProps) {
                   <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center mx-auto mb-4">
                     <span className="text-3xl font-semibold text-white">AI</span>
                   </div>
-                  <p className="text-gray-400">AI Interviewer</p>
+                  <p className="text-gray-400">AI Reviewer</p>
                 </div>
               </div>
             )}

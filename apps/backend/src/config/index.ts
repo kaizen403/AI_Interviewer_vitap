@@ -120,35 +120,35 @@ export const config = {
     // Diarization settings - identifies different speakers
     diarize: true,
     utterances: true,
-    // Longer utterance end detection to prevent cutting off (1.5 seconds)
-    utteranceEndMs: 1500,
+    // Faster utterance end detection for lower latency (500ms)
+    utteranceEndMs: 500,
   },
 
-  // VAD (Voice Activity Detection) settings for AGGRESSIVE noise filtering
-  // These settings ensure only clear, sustained speech triggers the agent
-  // Background noise and brief sounds will be ignored
+  // VAD (Voice Activity Detection) settings - OPTIMIZED FOR LOW LATENCY
+  // Balanced between noise filtering and responsive interaction
   vad: {
-    // Activation threshold: 0.5 default, 0.8 = very strict, only clear speech
-    // Higher value = requires louder/clearer speech to trigger
-    activationThreshold: 0.8,
+    // Activation threshold: 0.5 default, 0.65 = balanced (was 0.8)
+    // Lower = faster response, higher = more noise resistant
+    activationThreshold: 0.65,
 
-    // Minimum speech duration: requires 500ms of continuous speech
-    // Filters out brief noises, coughs, background voices
-    minSpeechDurationMs: 500,
+    // Minimum speech duration: 250ms for faster detection (was 500ms)
+    // Still filters brief noises but responds quicker
+    minSpeechDurationMs: 250,
 
-    // Minimum silence to end speech: needs 1.2 seconds of silence
-    // Prevents pausing during natural speech pauses
-    minSilenceDurationMs: 1200,
+    // Minimum silence to end speech: 600ms (was 1200ms)
+    // Faster turn-taking while still allowing natural pauses
+    minSilenceDurationMs: 600,
 
-    // Padding for smoother transitions
-    paddingStartMs: 200,
-    paddingEndMs: 300,
+    // Reduced padding for faster response
+    paddingStartMs: 100,
+    paddingEndMs: 150,
   },
 
   tts: {
     provider: env.TTS_PROVIDER,
     cartesia: {
       apiKey: env.CARTESIA_API_KEY,
+      // sonic-3 has 90ms latency but most natural voice quality
       model: 'sonic-3',
       voice: '6303e5fb-a0a7-48f9-bb1a-dd42c216dc5d',
     },

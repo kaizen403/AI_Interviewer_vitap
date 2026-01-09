@@ -15,8 +15,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pendent Interview",
-  description: "AI-powered interview platform",
+  title: "Capstone Reviewer",
+  description: "AI-powered project presentation review platform",
 };
 
 export default function RootLayout({

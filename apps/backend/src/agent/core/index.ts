@@ -57,9 +57,18 @@ const DEFAULT_VOICE_PIPELINE_CONFIG = {
   },
   tts: {
     provider: (process.env.TTS_PROVIDER || 'cartesia') as 'cartesia' | 'elevenlabs' | 'azure',
+    // sonic-3 has 90ms latency but most natural voice quality
     model: process.env.TTS_MODEL || 'sonic-3',
     voiceId: process.env.TTS_VOICE_ID || '6303e5fb-a0a7-48f9-bb1a-dd42c216dc5d',
     language: process.env.TTS_LANGUAGE || 'en',
+  },
+  // VAD settings for low latency
+  vad: {
+    activationThreshold: 0.65,
+    minSpeechDurationMs: 250,
+    minSilenceDurationMs: 600,
+    paddingStartMs: 100,
+    paddingEndMs: 150,
   },
 };
 
