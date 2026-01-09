@@ -20,7 +20,9 @@ class LivekitService {
   constructor() {
     this.apiKey = process.env.LIVEKIT_API_KEY || '';
     this.apiSecret = process.env.LIVEKIT_API_SECRET || '';
-    this.livekitUrl = process.env.LIVEKIT_URL || 'http://localhost:7880';
+    const wsUrl = process.env.LIVEKIT_URL || 'ws://localhost:7880';
+    // Convert WSS/WS to HTTPS/HTTP for API calls
+    this.livekitUrl = wsUrl.replace('wss://', 'https://').replace('ws://', 'http://');
     this.isConfigured = !!(this.apiKey && this.apiSecret);
 
     if (!this.isConfigured) {
@@ -49,9 +51,9 @@ class LivekitService {
       throw new Error('LiveKit not configured');
     }
 
-    const { 
-      roomName, 
-      participantName, 
+    const {
+      roomName,
+      participantName,
       participantIdentity,
       ttl = 3600, // Default 1 hour
       canPublish = true,

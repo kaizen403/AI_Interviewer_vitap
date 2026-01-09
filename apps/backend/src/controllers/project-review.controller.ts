@@ -15,11 +15,14 @@ import fs from 'fs/promises';
 // LiveKit credentials
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
-const LIVEKIT_URL = process.env.LIVEKIT_URL || 'http://localhost:7880';
+const LIVEKIT_WS_URL = process.env.LIVEKIT_URL || 'ws://localhost:7880';
 
-// Initialize LiveKit clients
-const roomService = new RoomServiceClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
-const agentDispatch = new AgentDispatchClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+// Convert WSS to HTTPS for API calls (RoomServiceClient, AgentDispatchClient need HTTP)
+const LIVEKIT_API_URL = LIVEKIT_WS_URL.replace('wss://', 'https://').replace('ws://', 'http://');
+
+// Initialize LiveKit clients with HTTPS URL
+const roomService = new RoomServiceClient(LIVEKIT_API_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+const agentDispatch = new AgentDispatchClient(LIVEKIT_API_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
 
 // PPT upload config
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
