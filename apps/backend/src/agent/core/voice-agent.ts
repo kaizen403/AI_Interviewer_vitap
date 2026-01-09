@@ -1,7 +1,7 @@
 /**
  * Base Voice Agent
  * Abstract base class for all LangGraph-powered voice agents
- * 
+ *
  * This class handles:
  * - LiveKit room connection and management
  * - Voice pipeline setup (VAD, STT, LLM, TTS)
@@ -15,13 +15,13 @@ import {
   JobContext,
   JobProcess,
   voice,
-} from '@livekit/agents';
-import * as livekit from '@livekit/agents-plugin-livekit';
-import * as openai from '@livekit/agents-plugin-openai';
-import * as deepgram from '@livekit/agents-plugin-deepgram';
-import * as silero from '@livekit/agents-plugin-silero';
-import * as cartesia from '@livekit/agents-plugin-cartesia';
-import { StateGraph, END, START } from '@langchain/langgraph';
+} from "@livekit/agents";
+import * as livekit from "@livekit/agents-plugin-livekit";
+import * as openai from "@livekit/agents-plugin-openai";
+import * as deepgram from "@livekit/agents-plugin-deepgram";
+import * as silero from "@livekit/agents-plugin-silero";
+import * as cartesia from "@livekit/agents-plugin-cartesia";
+import { StateGraph, END, START } from "@langchain/langgraph";
 
 import {
   type BaseAgentConfig,
@@ -31,7 +31,7 @@ import {
   type AgentEventHandler,
   type AgentMetadata,
   AgentEventType,
-} from './types.js';
+} from "./types.js";
 import {
   withTimeout,
   withRetry,
@@ -39,7 +39,7 @@ import {
   createAgentLogger,
   CheckpointManager,
   getCheckpointManager,
-} from './utils/index.js';
+} from "./utils/index.js";
 
 // ============================================================================
 // Constants
@@ -57,16 +57,16 @@ const GRAPH_INVOKE_MAX_RETRIES = 2;
 
 /**
  * Abstract base class for voice agents with LangGraph integration
- * 
+ *
  * Extend this class to create custom voice agents:
- * 
+ *
  * @example
  * ```typescript
  * class MyAgent extends BaseVoiceAgent<MyState, MyConfig> {
  *   protected buildGraph() {
  *     // Build your LangGraph workflow
  *   }
- *   
+ *
  *   protected getSystemPrompt(metadata: AgentMetadata): string {
  *     return "You are a helpful assistant...";
  *   }
@@ -75,7 +75,7 @@ const GRAPH_INVOKE_MAX_RETRIES = 2;
  */
 export abstract class BaseVoiceAgent<
   TState extends BaseAgentState = BaseAgentState,
-  TConfig extends BaseAgentConfig = BaseAgentConfig
+  TConfig extends BaseAgentConfig = BaseAgentConfig,
 > {
   protected config: TConfig;
   protected graph: any = null; // LangGraph compiled graph
@@ -116,7 +116,7 @@ export abstract class BaseVoiceAgent<
   protected abstract createInitialState(
     sessionId: string,
     roomName: string,
-    metadata: AgentMetadata
+    metadata: AgentMetadata,
   ): TState;
 
   /**
@@ -136,19 +136,19 @@ export abstract class BaseVoiceAgent<
    */
   protected async processUserInput(
     input: string,
-    state: TState
+    state: TState,
   ): Promise<{ response: string; newState: TState }> {
     if (!this.graph) {
-      throw new Error('Graph not initialized');
+      throw new Error("Graph not initialized");
     }
 
-    this.logger.debug('Processing user input', { inputLength: input.length });
+    this.logger.debug("Processing user input", { inputLength: input.length });
 
     // Add user message to transcript
     const updatedTranscript: TranscriptEntry[] = [
       ...state.transcript,
       {
-        role: 'user' as const,
+        role: "user" as const,
         content: input,
         timestamp: new Date(),
       },
@@ -162,29 +162,30 @@ export abstract class BaseVoiceAgent<
 
     try {
       // Invoke the graph with timeout protection
-      const result = await withTimeout(
-        this.graph.invoke(inputState),
-        {
-          timeoutMs: GRAPH_INVOKE_TIMEOUT_MS,
-          timeoutMessage: 'Graph invocation timed out',
-        }
-      ) as TState & { lastAiMessage?: string };
+      const result = (await withTimeout(this.graph.invoke(inputState), {
+        timeoutMs: GRAPH_INVOKE_TIMEOUT_MS,
+        timeoutMessage: "Graph invocation timed out",
+      })) as TState & { lastAiMessage?: string };
 
       // Extract AI response
-      const response = result.lastAiMessage || "I'm sorry, I didn't understand that.";
+      const response =
+        result.lastAiMessage || "I'm sorry, I didn't understand that.";
 
-      this.logger.debug('Graph invocation complete', { responseLength: response.length });
+      this.logger.debug("Graph invocation complete", {
+        responseLength: response.length,
+      });
 
       return {
         response,
         newState: result as TState,
       };
     } catch (error) {
-      this.logger.error('Graph invocation failed', error);
+      this.logger.error("Graph invocation failed", error);
 
       // Return graceful fallback
       return {
-        response: "I'm having a moment of difficulty. Could you please repeat that?",
+        response:
+          "I'm having a moment of difficulty. Could you please repeat that?",
         newState: state,
       };
     }
@@ -265,9 +266,9 @@ export abstract class BaseVoiceAgent<
 
     return defineAgent({
       prewarm: async (proc: JobProcess) => {
-        self.logger.info('Prewarming - loading VAD model...');
+        self.logger.info("Prewarming - loading VAD model...");
         proc.userData.vad = await silero.VAD.load();
-        self.logger.info('Prewarm complete');
+        self.logger.info("Prewarm complete");
       },
 
       entry: async (ctx: JobContext) => {
@@ -280,23 +281,30 @@ export abstract class BaseVoiceAgent<
    * Handle agent entry (when job starts)
    */
   protected async handleEntry(ctx: JobContext): Promise<void> {
-    console.log('\n========================================');
+    console.log("\n========================================");
     console.log(`[${this.config.name}] 🎤 HANDLE ENTRY STARTING`);
-    console.log('========================================');
+    console.log("========================================");
 
     try {
       console.log(`[${this.config.name}] 📊 Job context:`);
-      console.log(`  - Room name: ${ctx.room?.name || ctx.job?.room?.name || 'unknown'}`);
-      console.log(`  - Proc userData keys: ${Object.keys(ctx.proc?.userData || {}).join(', ')}`);
+      console.log(
+        `  - Room name: ${ctx.room?.name || ctx.job?.room?.name || "unknown"}`,
+      );
+      console.log(
+        `  - Proc userData keys: ${Object.keys(ctx.proc?.userData || {}).join(", ")}`,
+      );
 
-      this.logger.info('🎤 Agent starting', { roomName: ctx.room.name });
+      this.logger.info("🎤 Agent starting", { roomName: ctx.room.name });
 
       // Parse room metadata
       console.log(`[${this.config.name}] 📝 Parsing room metadata...`);
-      const rawMetadata = ctx.room.metadata || '{}';
+      const rawMetadata = ctx.room.metadata || "{}";
       console.log(`[${this.config.name}] Raw metadata: ${rawMetadata}`);
       const metadata = this.parseMetadata(rawMetadata);
-      console.log(`[${this.config.name}] ✅ Parsed metadata:`, JSON.stringify(metadata, null, 2));
+      console.log(
+        `[${this.config.name}] ✅ Parsed metadata:`,
+        JSON.stringify(metadata, null, 2),
+      );
 
       // Get preloaded VAD
       console.log(`[${this.config.name}] 🎙️ Getting preloaded VAD...`);
@@ -304,7 +312,9 @@ export abstract class BaseVoiceAgent<
       if (this.vad) {
         console.log(`[${this.config.name}] ✅ VAD loaded from proc.userData`);
       } else {
-        console.error(`[${this.config.name}] ❌ VAD not found in proc.userData!`);
+        console.error(
+          `[${this.config.name}] ❌ VAD not found in proc.userData!`,
+        );
       }
 
       // Build and compile the graph
@@ -316,8 +326,14 @@ export abstract class BaseVoiceAgent<
 
       // Create initial state
       const sessionId = `session_${Date.now()}`;
-      console.log(`[${this.config.name}] 📋 Creating initial state for session: ${sessionId}`);
-      this.currentState = this.createInitialState(sessionId, ctx.room.name ?? '', metadata);
+      console.log(
+        `[${this.config.name}] 📋 Creating initial state for session: ${sessionId}`,
+      );
+      this.currentState = this.createInitialState(
+        sessionId,
+        ctx.room.name ?? "",
+        metadata,
+      );
       console.log(`[${this.config.name}] ✅ Initial state created`);
 
       // Update logger with session context
@@ -333,28 +349,40 @@ export abstract class BaseVoiceAgent<
       });
 
       // Create voice agent with system prompt
-      console.log(`[${this.config.name}] 🤖 Creating voice.Agent with system prompt...`);
+      console.log(
+        `[${this.config.name}] 🤖 Creating voice.Agent with system prompt...`,
+      );
       const systemPrompt = this.getSystemPrompt(metadata);
-      console.log(`[${this.config.name}] System prompt preview: ${systemPrompt.substring(0, 100)}...`);
+      console.log(
+        `[${this.config.name}] System prompt preview: ${systemPrompt.substring(0, 100)}...`,
+      );
       const agent = new voice.Agent({
         instructions: systemPrompt,
       });
       console.log(`[${this.config.name}] ✅ voice.Agent created`);
 
       // Create voice pipeline components
-      console.log(`[${this.config.name}] 🎛️ Creating voice pipeline components...`);
+      console.log(
+        `[${this.config.name}] 🎛️ Creating voice pipeline components...`,
+      );
 
       console.log(`[${this.config.name}]   - Creating STT (Deepgram)...`);
       const stt = this.createSTT();
-      console.log(`[${this.config.name}]   ✅ STT created: model=${this.config.stt.model}, language=${this.config.stt.language}`);
+      console.log(
+        `[${this.config.name}]   ✅ STT created: model=${this.config.stt.model}, language=${this.config.stt.language}`,
+      );
 
       console.log(`[${this.config.name}]   - Creating LLM (OpenAI)...`);
       const llm = this.createVoiceLLM();
-      console.log(`[${this.config.name}]   ✅ LLM created: model=${this.config.llm.model}, temp=${this.config.llm.temperature}`);
+      console.log(
+        `[${this.config.name}]   ✅ LLM created: model=${this.config.llm.model}, temp=${this.config.llm.temperature}`,
+      );
 
       console.log(`[${this.config.name}]   - Creating TTS (Cartesia)...`);
       const tts = this.createTTS();
-      console.log(`[${this.config.name}]   ✅ TTS created: model=${this.config.tts.model}, voice=${this.config.tts.voiceId}`);
+      console.log(
+        `[${this.config.name}]   ✅ TTS created: model=${this.config.tts.model}, voice=${this.config.tts.voiceId}`,
+      );
 
       console.log(`[${this.config.name}]   - Creating turn detection...`);
       const turnDetection = this.createTurnDetection();
@@ -362,9 +390,13 @@ export abstract class BaseVoiceAgent<
 
       // Create agent session with voice pipeline
       // Configure to be less sensitive to interruptions and require longer silence
-      console.log(`[${this.config.name}] 🔧 Creating AgentSession with voice pipeline...`);
+      console.log(
+        `[${this.config.name}] 🔧 Creating AgentSession with voice pipeline...`,
+      );
       const vadConfig = this.config.vad;
-      console.log(`[${this.config.name}]   - minEndpointingDelay: ${(vadConfig?.minSilenceDurationMs || 1200) / 1000}s`);
+      console.log(
+        `[${this.config.name}]   - minEndpointingDelay: ${(vadConfig?.minSilenceDurationMs || 1200) / 1000}s`,
+      );
 
       this.session = new voice.AgentSession({
         vad: this.vad,
@@ -376,10 +408,12 @@ export abstract class BaseVoiceAgent<
         voiceOptions: {
           // Require longer silence before considering user's speech ended (in seconds)
           minEndpointingDelay: (vadConfig?.minSilenceDurationMs || 1200) / 1000,
-          maxEndpointingDelay: ((vadConfig?.minSilenceDurationMs || 1200) / 1000) + 1,
+          maxEndpointingDelay:
+            (vadConfig?.minSilenceDurationMs || 1200) / 1000 + 1,
 
           // Require longer speech before counting as interruption (in seconds)
-          minInterruptionDuration: (vadConfig?.minSpeechDurationMs || 500) / 1000,
+          minInterruptionDuration:
+            (vadConfig?.minSpeechDurationMs || 500) / 1000,
 
           // Require at least 3 words before considering it an interruption
           minInterruptionWords: 3,
@@ -388,18 +422,26 @@ export abstract class BaseVoiceAgent<
           allowInterruptions: true,
         },
       });
-      console.log(`[${this.config.name}] ✅ AgentSession created with noise-resistant settings`);
+      console.log(
+        `[${this.config.name}] ✅ AgentSession created with noise-resistant settings`,
+      );
 
       // Connect to room
       console.log(`[${this.config.name}] 🔌 Connecting to room...`);
       await ctx.connect();
       this.ctx = ctx; // Store context for data message handling
-      console.log(`[${this.config.name}] ✅ Connected to room: ${ctx.room.name}`);
-      console.log(`[${this.config.name}]   - Room metadata: ${ctx.room.metadata}`);
-      this.logger.info('✅ Connected to room');
+      console.log(
+        `[${this.config.name}] ✅ Connected to room: ${ctx.room.name}`,
+      );
+      console.log(
+        `[${this.config.name}]   - Room metadata: ${ctx.room.metadata}`,
+      );
+      this.logger.info("✅ Connected to room");
 
       // Set up data message listener for file uploads and other events
-      console.log(`[${this.config.name}] 📡 Setting up data message listener...`);
+      console.log(
+        `[${this.config.name}] 📡 Setting up data message listener...`,
+      );
       this.setupDataMessageListener(ctx);
 
       // Start the agent session
@@ -409,36 +451,51 @@ export abstract class BaseVoiceAgent<
           agent,
           room: ctx.room,
         });
-        console.log(`[${this.config.name}] ✅ Voice agent session started successfully!`);
-        this.logger.info('🚀 Voice agent session started');
+        console.log(
+          `[${this.config.name}] ✅ Voice agent session started successfully!`,
+        );
+        this.logger.info("🚀 Voice agent session started");
       } catch (err) {
-        console.error(`[${this.config.name}] ❌ Failed to start agent session:`, err);
-        this.logger.error('❌ Failed to start agent session:', err);
+        console.error(
+          `[${this.config.name}] ❌ Failed to start agent session:`,
+          err,
+        );
+        this.logger.error("❌ Failed to start agent session:", err);
         throw err;
       }
 
       // Start periodic checkpointing
-      console.log(`[${this.config.name}] 💾 Starting periodic checkpointing...`);
+      console.log(
+        `[${this.config.name}] 💾 Starting periodic checkpointing...`,
+      );
       this.checkpointManager.startPeriodic(
         sessionId,
         () => this.currentState!,
-        'session',
-        () => (this.currentState as any)?.phase || 'unknown'
+        "session",
+        () => (this.currentState as any)?.phase || "unknown",
       );
 
       // NOTE: Greeting is now handled by the LangGraph workflow (e.g., greetingNode)
       // Do NOT call session.say() here as it would cause duplicate speech.
       // The workflow will set lastAiMessage which automatically triggers TTS.
-      console.log(`[${this.config.name}] 📋 Greeting will be handled by LangGraph workflow...`);
+      console.log(
+        `[${this.config.name}] 📋 Greeting will be handled by LangGraph workflow...`,
+      );
 
       // Wait for participant
-      console.log(`[${this.config.name}] ⏳ Waiting for participant to join...`);
+      console.log(
+        `[${this.config.name}] ⏳ Waiting for participant to join...`,
+      );
       const participant = await ctx.waitForParticipant();
       console.log(`[${this.config.name}] ✅ Participant joined!`);
-      console.log(`[${this.config.name}]   - Identity: ${participant.identity}`);
+      console.log(
+        `[${this.config.name}]   - Identity: ${participant.identity}`,
+      );
       console.log(`[${this.config.name}]   - Name: ${participant.name}`);
       console.log(`[${this.config.name}]   - SID: ${participant.sid}`);
-      this.logger.info('👤 Participant joined', { participantId: participant.identity });
+      this.logger.info("👤 Participant joined", {
+        participantId: participant.identity,
+      });
 
       await this.onUserJoined(participant.identity);
       await this.onEvent({
@@ -454,19 +511,24 @@ export abstract class BaseVoiceAgent<
       // Parse room metadata for greeting
       let roomMetadata: any = {};
       try {
-        roomMetadata = JSON.parse(ctx.room.metadata || '{}');
-      } catch { /* ignore parse errors */ }
+        roomMetadata = JSON.parse(ctx.room.metadata || "{}");
+      } catch {
+        /* ignore parse errors */
+      }
 
       // IMMEDIATELY speak a greeting before running the graph
       // This ensures the user hears something right away
       if (this.session) {
-        const candidateName = roomMetadata.candidateName || 'there';
-        const jobRole = roomMetadata.jobRole || 'this position';
-        const interviewerName = roomMetadata.agentConfig?.interviewerName || 'Alex';
+        const candidateName = roomMetadata.candidateName || "Students";
+        const jobRole = roomMetadata.jobRole || "this position";
+        const interviewerName =
+          roomMetadata.agentConfig?.interviewerName || "Sibi";
 
-        const greeting = `Hello ${candidateName}! Welcome to your interview for ${jobRole}. I'm ${interviewerName}, and I'll be conducting your interview today. Let me just review your background briefly, and then we'll get started with some questions.`;
+        const greeting = `Hello ${candidateName}! I hope everyone is present for the project review. I'm ${interviewerName}, and I'll be conducting your interview today. Let me just review what you guys have uploaded, and then we'll get started with some questions.`;
 
-        console.log(`[${this.config.name}] 💬 Speaking greeting immediately...`);
+        console.log(
+          `[${this.config.name}] 💬 Speaking greeting immediately...`,
+        );
         await this.session.say(greeting);
         console.log(`[${this.config.name}] ✅ Greeting spoken!`);
       }
@@ -475,17 +537,23 @@ export abstract class BaseVoiceAgent<
       // The graph will generate questions and handle the interview flow
       console.log(`[${this.config.name}] 📊 Invoking graph workflow...`);
 
-      this.graph.invoke(this.currentState).then((result: any) => {
-        this.currentState = result;
-        console.log(`[${this.config.name}] ✅ Graph workflow completed`);
-      }).catch((error: any) => {
-        console.error(`[${this.config.name}] ❌ Graph workflow error:`, error);
-      });
+      this.graph
+        .invoke(this.currentState)
+        .then((result: any) => {
+          this.currentState = result;
+          console.log(`[${this.config.name}] ✅ Graph workflow completed`);
+        })
+        .catch((error: any) => {
+          console.error(
+            `[${this.config.name}] ❌ Graph workflow error:`,
+            error,
+          );
+        });
 
-      console.log('\n========================================');
+      console.log("\n========================================");
       console.log(`[${this.config.name}] ✨ AGENT IS READY AND LISTENING`);
-      console.log('========================================\n');
-      this.logger.info('✨ Agent is ready and listening...');
+      console.log("========================================\n");
+      this.logger.info("✨ Agent is ready and listening...");
 
       // =====================================================================
       // KEEP SESSION ALIVE - Wait for room to disconnect
@@ -497,19 +565,25 @@ export abstract class BaseVoiceAgent<
 
       // Wait for the room to disconnect before exiting
       // This keeps the agent alive for the entire session
-      console.log(`[${this.config.name}] 🔄 Waiting for room disconnect (session is active)...`);
+      console.log(
+        `[${this.config.name}] 🔄 Waiting for room disconnect (session is active)...`,
+      );
 
       await new Promise<void>((resolve) => {
-        ctx.room.on('disconnected', () => {
-          console.log(`[${this.config.name}] 🔌 Room disconnected - ending session`);
-          this.logger.info('Room disconnected - ending session');
+        ctx.room.on("disconnected", () => {
+          console.log(
+            `[${this.config.name}] 🔌 Room disconnected - ending session`,
+          );
+          this.logger.info("Room disconnected - ending session");
           resolve();
         });
 
         // Also resolve if room connection state changes
-        ctx.room.on('connectionStateChanged', (state: any) => {
-          console.log(`[${this.config.name}] 📡 Connection state changed: ${state}`);
-          if (state === 'disconnected') {
+        ctx.room.on("connectionStateChanged", (state: any) => {
+          console.log(
+            `[${this.config.name}] 📡 Connection state changed: ${state}`,
+          );
+          if (state === "disconnected") {
             resolve();
           }
         });
@@ -521,14 +595,13 @@ export abstract class BaseVoiceAgent<
       this.checkpointManager.stopPeriodic(this.getSessionId());
 
       console.log(`[${this.config.name}] ✅ Session ended gracefully`);
-
     } catch (err) {
-      console.error('\n========================================');
+      console.error("\n========================================");
       console.error(`[${this.config.name}] ❌ FATAL ERROR IN handleEntry`);
-      console.error('========================================');
-      console.error('Error:', err);
-      console.error('Stack:', (err as Error)?.stack);
-      this.logger.error('❌ Fatal error in handleEntry:', err);
+      console.error("========================================");
+      console.error("Error:", err);
+      console.error("Stack:", (err as Error)?.stack);
+      this.logger.error("❌ Fatal error in handleEntry:", err);
       throw err;
     }
   }
@@ -540,27 +613,43 @@ export abstract class BaseVoiceAgent<
     const agentName = this.config.name;
 
     // Track speaking events
-    ctx.room.on('trackSubscribed', (track: any, publication: any, participant: any) => {
-      console.log(`[${agentName}] 🎧 Track subscribed: ${track.kind} from ${participant.identity}`);
-    });
+    ctx.room.on(
+      "trackSubscribed",
+      (track: any, publication: any, participant: any) => {
+        console.log(
+          `[${agentName}] 🎧 Track subscribed: ${track.kind} from ${participant.identity}`,
+        );
+      },
+    );
 
-    ctx.room.on('trackUnsubscribed', (track: any, publication: any, participant: any) => {
-      console.log(`[${agentName}] 🔇 Track unsubscribed: ${track.kind} from ${participant.identity}`);
-    });
+    ctx.room.on(
+      "trackUnsubscribed",
+      (track: any, publication: any, participant: any) => {
+        console.log(
+          `[${agentName}] 🔇 Track unsubscribed: ${track.kind} from ${participant.identity}`,
+        );
+      },
+    );
 
     // Track participant events
-    ctx.room.on('participantConnected', (participant: any) => {
-      console.log(`[${agentName}] 👤 Participant connected: ${participant.identity}`);
+    ctx.room.on("participantConnected", (participant: any) => {
+      console.log(
+        `[${agentName}] 👤 Participant connected: ${participant.identity}`,
+      );
     });
 
-    ctx.room.on('participantDisconnected', (participant: any) => {
-      console.log(`[${agentName}] 👋 Participant disconnected: ${participant.identity}`);
+    ctx.room.on("participantDisconnected", (participant: any) => {
+      console.log(
+        `[${agentName}] 👋 Participant disconnected: ${participant.identity}`,
+      );
     });
 
     // Track active speaker
-    ctx.room.on('activeSpeakersChanged', (speakers: any[]) => {
+    ctx.room.on("activeSpeakersChanged", (speakers: any[]) => {
       if (speakers.length > 0) {
-        console.log(`[${agentName}] 🗣️ Active speakers: ${speakers.map((s: any) => s.identity).join(', ')}`);
+        console.log(
+          `[${agentName}] 🗣️ Active speakers: ${speakers.map((s: any) => s.identity).join(", ")}`,
+        );
       }
     });
 
@@ -571,24 +660,35 @@ export abstract class BaseVoiceAgent<
    * Set up listener for data messages from the room
    */
   protected setupDataMessageListener(ctx: JobContext): void {
-    ctx.room.on('dataReceived', (payload: Uint8Array, participant: any, kind: any, topic?: string) => {
-      try {
-        const message = JSON.parse(new TextDecoder().decode(payload));
-        this.logger.debug('📩 Data message received', { topic, type: message.type });
-        this.onDataMessage(message, participant);
-      } catch (err) {
-        this.logger.error('Failed to parse data message:', err);
-      }
-    });
-    this.logger.info('📡 Data message listener set up');
+    ctx.room.on(
+      "dataReceived",
+      (payload: Uint8Array, participant: any, kind: any, topic?: string) => {
+        try {
+          const message = JSON.parse(new TextDecoder().decode(payload));
+          this.logger.debug("📩 Data message received", {
+            topic,
+            type: message.type,
+          });
+          this.onDataMessage(message, participant);
+        } catch (err) {
+          this.logger.error("Failed to parse data message:", err);
+        }
+      },
+    );
+    this.logger.info("📡 Data message listener set up");
   }
 
   /**
    * Handle incoming data messages
    * Override this in subclasses to handle specific message types
    */
-  protected onDataMessage(message: { type: string; data?: any }, participant: any): void {
-    this.logger.debug('Data message received (base handler)', { type: message.type });
+  protected onDataMessage(
+    message: { type: string; data?: any },
+    participant: any,
+  ): void {
+    this.logger.debug("Data message received (base handler)", {
+      type: message.type,
+    });
     // Base implementation does nothing - override in subclasses
   }
 
@@ -596,10 +696,13 @@ export abstract class BaseVoiceAgent<
    * Get session ID from current state (handles different state shapes)
    */
   protected getSessionId(): string {
-    if (!this.currentState) return '';
+    if (!this.currentState) return "";
     // Check for common session ID field names
     const state = this.currentState as Record<string, unknown>;
-    return (state.sessionId || state.interviewId || state.reviewId || '') as string;
+    return (state.sessionId ||
+      state.interviewId ||
+      state.reviewId ||
+      "") as string;
   }
 
   // -------------------------------------------------------------------------
@@ -624,7 +727,9 @@ export abstract class BaseVoiceAgent<
     // Enable diarization if configured (identifies different speakers)
     if (stt.diarize) {
       sttOptions.diarize = true;
-      this.logger.info('🎙️ Diarization enabled - will identify different speakers');
+      this.logger.info(
+        "🎙️ Diarization enabled - will identify different speakers",
+      );
     }
 
     // Enable utterance-level results for speaker labels
@@ -637,7 +742,7 @@ export abstract class BaseVoiceAgent<
       sttOptions.utteranceEndMs = stt.utteranceEndMs;
     }
 
-    this.logger.debug('STT configuration', sttOptions);
+    this.logger.debug("STT configuration", sttOptions);
 
     return new deepgram.STT(sttOptions);
   }
@@ -651,7 +756,7 @@ export abstract class BaseVoiceAgent<
 
     // Use preloaded VAD if available (from prewarm)
     if (proc.userData.vad) {
-      this.logger.info('Using preloaded VAD from prewarm');
+      this.logger.info("Using preloaded VAD from prewarm");
       return proc.userData.vad as silero.VAD;
     }
 
@@ -682,7 +787,7 @@ export abstract class BaseVoiceAgent<
       vadOptions.paddingEndMs = vadConfig.paddingEndMs;
     }
 
-    this.logger.debug('VAD configuration', vadOptions);
+    this.logger.debug("VAD configuration", vadOptions);
 
     return await silero.VAD.load(vadOptions);
   }
@@ -729,14 +834,14 @@ export abstract class BaseVoiceAgent<
     try {
       const parsed = JSON.parse(metadataStr);
       return {
-        agentType: parsed.agentType || 'custom',
+        agentType: parsed.agentType || "custom",
         sessionId: parsed.sessionId || `session_${Date.now()}`,
         userId: parsed.userId,
         customData: parsed,
       };
     } catch {
       return {
-        agentType: 'custom',
+        agentType: "custom",
         sessionId: `session_${Date.now()}`,
       };
     }
@@ -757,7 +862,7 @@ export abstract class BaseVoiceAgent<
           transcript: [
             ...this.currentState.transcript,
             {
-              role: 'ai' as const,
+              role: "ai" as const,
               content: message,
               timestamp: new Date(),
             },
