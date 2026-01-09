@@ -13,6 +13,10 @@ const app: Application = express();
 const PORT = process.env.PORT || 8080;
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Trust proxy - required when behind Render's proxy for rate-limiter to work
+// This allows Express to get the real client IP from X-Forwarded-For header
+app.set('trust proxy', 1);
+
 // Security middleware - Helmet for security headers
 app.use(helmet({
   contentSecurityPolicy: isProduction ? undefined : false, // Disable CSP in dev
