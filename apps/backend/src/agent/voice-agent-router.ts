@@ -84,8 +84,8 @@ export default defineAgent({
       console.warn('[VoiceAgentRouter] Parse error:', e);
     }
 
-    // Determine agent type from metadata (default to 'interview')
-    const agentType = (metadata.agentType as AgentType) || 'interview';
+    // Determine agent type from metadata (default to 'project-review')
+    const agentType = (metadata.agentType as AgentType) || 'project-review';
     console.log(`[VoiceAgentRouter] 🎯 Agent type: ${agentType}`);
 
     // Check if agent type is registered
