@@ -3,13 +3,15 @@
 // ============================================
 
 generator client {
-    provider     = "prisma-client-js"
-    output       = "../src/generated/prisma"
-    moduleFormat = "esm"
+    provider        = "prisma-client-js"
+    output          = "../src/generated/prisma"
+    moduleFormat    = "esm"
+    previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-    provider = "postgresql"
+    provider   = "postgresql"
+    extensions = [vector]
 }
 
 // ============================================
@@ -82,10 +84,36 @@ model ProjectReview {
     createdAt DateTime            @default(now()) @map("created_at")
     updatedAt DateTime            @updatedAt @map("updated_at")
 
-    student Student              @relation(fields: [studentId], references: [id])
-    report  ProjectReviewReport?
+    student   Student              @relation(fields: [studentId], references: [id])
+    report    ProjectReviewReport?
+    pptChunks PptChunk[]
 
     @@map("project_reviews")
+}
+
+// ============================================
+// PPT CHUNKS (RAG Vector Storage)
+// ============================================
+
+model PptChunk {
+    id       String @id @default(uuid())
+    reviewId String @map("review_id")
+
+    // Chunk content
+    slideNumber Int?    @map("slide_number")
+    slideTitle  String? @map("slide_title")
+    content     String  @db.Text
+    chunkIndex  Int     @map("chunk_index")
+
+    // Vector embedding (1536 dimensions for text-embedding-3-small)
+    embedding Unsupported("vector(1536)")?
+
+    createdAt DateTime @default(now()) @map("created_at")
+
+    review ProjectReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+    @@index([reviewId])
+    @@map("ppt_chunks")
 }
 
 // ============================================

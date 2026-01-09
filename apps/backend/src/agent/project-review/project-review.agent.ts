@@ -14,8 +14,8 @@ import { StateGraph, END, START } from '@langchain/langgraph';
 import { BaseVoiceAgent } from '../core/voice-agent.js';
 import { type AgentMetadata, type BaseAgentConfig } from '../core/types.js';
 
-import { 
-  ProjectReviewState, 
+import {
+  ProjectReviewState,
   type ProjectReviewStateType,
   createDefaultReviewConnectionState,
   createDefaultReviewTimeState,
@@ -58,62 +58,62 @@ export class ProjectReviewAgent extends BaseVoiceAgent<ProjectReviewStateType, P
     // -----------------------------------------------------------------------
     // Add Nodes
     // -----------------------------------------------------------------------
-    
+
     // Setup phase
     graph.addNode('initializeSession', initializationNode);
     graph.addNode('awaitUpload', this.createWaitForUploadNode());
     graph.addNode('parsePpt', pptParsingNode);
-    
+
     // Analysis phase
     graph.addNode('detectAiContent', aiDetectionNode);
     graph.addNode('generateQuestions', questionGenerationNode);
-    
+
     // Questioning phase
     graph.addNode('presentQuestion', askQuestionNode);
     graph.addNode('assessAnswer', evaluateAnswerNode);
     graph.addNode('transitionLevel', levelTransitionNode);
-    
+
     // Report phase
     graph.addNode('generateReport', reportGenerationNode);
     graph.addNode('closeSession', closingNode);
-    
+
     // Error handling
     graph.addNode('onError', this.createErrorNode());
 
     // -----------------------------------------------------------------------
     // Add Edges
     // -----------------------------------------------------------------------
-    
+
     // Entry
     graph.addEdge(START, 'initializeSession');
     graph.addEdge('initializeSession', 'awaitUpload');
-    
+
     // Upload routing
     graph.addConditionalEdges('awaitUpload', this.routeFromUpload.bind(this), {
       parsePpt: 'parsePpt',
       awaitUpload: 'awaitUpload',
       onError: 'onError',
     });
-    
+
     // Parsing -> Detection -> Question Gen
     graph.addEdge('parsePpt', 'detectAiContent');
     graph.addEdge('detectAiContent', 'generateQuestions');
     graph.addEdge('generateQuestions', 'presentQuestion');
-    
+
     // Question loop
     graph.addConditionalEdges('presentQuestion', this.routeFromQuestion.bind(this), {
       assessAnswer: 'assessAnswer',
       generateReport: 'generateReport',
     });
-    
+
     graph.addEdge('assessAnswer', 'transitionLevel');
-    
+
     // Level transition routing
     graph.addConditionalEdges('transitionLevel', this.routeFromLevelTransition.bind(this), {
       presentQuestion: 'presentQuestion',
       generateReport: 'generateReport',
     });
-    
+
     // Report -> Closing -> End
     graph.addEdge('generateReport', 'closeSession');
     graph.addEdge('closeSession', END);
@@ -124,27 +124,53 @@ export class ProjectReviewAgent extends BaseVoiceAgent<ProjectReviewStateType, P
 
   /**
    * Get system prompt for the project review agent
+   * Includes RAG context from PPT if available
    */
   protected getSystemPrompt(metadata: AgentMetadata): string {
-    return `You are an AI project reviewer conducting a professional presentation review session.
+    const pptContext = this.currentState?.pptContext || '';
+    const projectTitle = metadata.projectTitle || 'the project';
+    const candidateName = metadata.candidate?.name || 'the candidate';
 
-Your role:
+    let prompt = `You are an AI project reviewer conducting a professional capstone presentation review session.
+
+CANDIDATE: ${candidateName}
+PROJECT: ${projectTitle}
+
+YOUR ROLE:
 - Review the candidate's project presentation (PPT)
-- Detect potential AI-generated content
-- Ask progressively challenging questions
+- Ask targeted questions based on the presentation content
 - Evaluate understanding and project ownership
+- Progress from easier to harder questions
 - Provide constructive feedback
 
-Guidelines:
-- Be professional but encouraging
-- Start with easier questions to build confidence
-- Progress to harder questions to test depth
-- Note any discrepancies between presentation and answers
-- Focus on understanding, not memorization
+GUIDELINES:
+1. Be professional but encouraging
+2. Start with easier questions to build confidence
+3. Progress to harder questions to test depth of understanding
+4. Reference specific slides and content from the presentation when asking questions
+5. Note any discrepancies between what's in the presentation and the candidate's answers
+6. Focus on testing genuine understanding, not memorization
+7. Ask follow-up questions if answers are vague or incomplete
 
-Session context:
+SESSION INFO:
 - Session ID: ${metadata.sessionId || 'unknown'}
 - Room: ${metadata.roomName || 'unknown'}`;
+
+    // Add PPT context if available
+    if (pptContext) {
+      prompt += `
+
+PRESENTATION CONTENT (from uploaded PPT):
+${pptContext}
+
+Use this presentation content to:
+- Ask specific questions about concepts mentioned in the slides
+- Verify the candidate understands their own implementation
+- Probe technical decisions and trade-offs
+- Identify potential gaps in knowledge`;
+    }
+
+    return prompt;
   }
 
   /**
@@ -160,7 +186,7 @@ Session context:
       sessionId,
       roomName,
       phase: ReviewPhase.UPLOAD,
-      
+
       // Candidate (will be populated from metadata)
       candidate: metadata.candidate ? {
         id: metadata.candidate.id || '',
@@ -168,15 +194,16 @@ Session context:
         email: metadata.candidate.email || '',
         projectTitle: metadata.projectTitle || 'Project',
       } : null,
-      
+
       // PPT content
       pptFile: null,
       pptMetadata: null,
       slides: [],
-      
+      pptContext: '', // RAG context from PPT chunks
+
       // AI Detection
       aiDetection: null,
-      
+
       // Questions
       questionsPool: {
         easy: [],
@@ -186,26 +213,26 @@ Session context:
       currentQuestion: null,
       questionsAsked: [],
       currentLevel: QuestionLevel.EASY,
-      
+
       // Answers & Evaluations
       answers: [],
       evaluations: [],
-      
+
       // Report
       finalReport: null,
-      
+
       // Connection
       connection: createDefaultReviewConnectionState(),
-      
+
       // Time tracking
       time: createDefaultReviewTimeState(),
-      
+
       // Conversation
       transcript: [],
       lastAiMessage: '',
       lastUserMessage: '',
       shouldSpeak: true,
-      
+
       // Error handling
       errorCount: 0,
       lastError: null,
@@ -243,19 +270,19 @@ I'll analyze the content and we'll have a discussion about your project.`;
     if (state.currentQuestion) {
       return 'assessAnswer';
     }
-    
+
     // Check if we've exhausted all questions
     const { questionsPool, questionsAsked } = state;
     const totalAsked = questionsAsked.length;
-    const totalAvailable = 
-      questionsPool.easy.length + 
-      questionsPool.medium.length + 
+    const totalAvailable =
+      questionsPool.easy.length +
+      questionsPool.medium.length +
       questionsPool.hard.length;
-    
+
     if (totalAsked >= totalAvailable || totalAsked >= 10) {
       return 'generateReport';
     }
-    
+
     return 'assessAnswer';
   }
 
@@ -275,13 +302,13 @@ I'll analyze the content and we'll have a discussion about your project.`;
       // This node waits for file upload - in real implementation,
       // file upload would be handled by the voice agent's event system
       console.log('[ProjectReview] Waiting for PPT upload...');
-      
+
       if (!state.pptFile) {
         return {
           lastAiMessage: "I'm waiting for your presentation file. Please upload your PowerPoint.",
         };
       }
-      
+
       return {};
     };
   }
@@ -306,7 +333,7 @@ Please contact support for assistance.`,
    */
   protected onDataMessage(message: { type: string; data?: any }, participant: any): void {
     console.log('[ProjectReview] Data message received:', message.type);
-    
+
     switch (message.type) {
       case 'ppt_uploaded':
         this.handleFileUpload(message.data?.fileUrl || message.data?.url);
@@ -334,50 +361,66 @@ Please contact support for assistance.`,
     }
 
     console.log(`[ProjectReview] 📤 File upload received: ${fileUrl}`);
-    
+
     // Notify user we're processing
     if (this.session) {
       this.session.say("I've received your presentation file. Let me analyze the content and prepare some questions for you. This will take a moment.");
     }
 
     try {
-      // Update state with file URL
+      // Fetch RAG context from vector store
+      let pptContext = '';
+      try {
+        const { getPptContext } = await import('../../services/rag/index.js');
+        const reviewId = this.currentState.sessionId; // Use session ID or review ID
+        pptContext = await getPptContext(reviewId, 'project overview implementation');
+        console.log(`[ProjectReview] 📚 Retrieved ${pptContext.length} chars of RAG context`);
+      } catch (ragError) {
+        console.warn('[ProjectReview] RAG context fetch failed:', ragError);
+      }
+
+      // Update state with file URL and context
       this.currentState = {
         ...this.currentState,
         pptFile: fileUrl,
+        pptContext,
         phase: ReviewPhase.PARSING,
       };
 
       // Run the LangGraph workflow to analyze and generate questions
       console.log('[ProjectReview] 🔄 Running analysis workflow...');
-      
+
       if (this.graph) {
         const result = await this.graph.invoke(this.currentState);
         this.currentState = result;
-        
+
         console.log('[ProjectReview] ✅ Workflow complete');
         console.log(`[ProjectReview] Questions generated: Easy=${result.questionsPool?.easy?.length || 0}, Medium=${result.questionsPool?.medium?.length || 0}, Hard=${result.questionsPool?.hard?.length || 0}`);
-        
+
         // If we have questions, announce we're ready
-        const totalQuestions = 
-          (result.questionsPool?.easy?.length || 0) + 
-          (result.questionsPool?.medium?.length || 0) + 
+        const totalQuestions =
+          (result.questionsPool?.easy?.length || 0) +
+          (result.questionsPool?.medium?.length || 0) +
           (result.questionsPool?.hard?.length || 0);
-        
+
         if (totalQuestions > 0 && this.session) {
-          const firstQuestion = result.questionsPool?.easy?.[0]?.question || 
-                               result.questionsPool?.medium?.[0]?.question ||
-                               'Can you give me an overview of your project?';
-          
+          const firstQuestion = result.questionsPool?.easy?.[0]?.question ||
+            result.questionsPool?.medium?.[0]?.question ||
+            'Can you give me an overview of your project?';
+
           this.session.say(`I've analyzed your presentation and prepared ${totalQuestions} questions for you. Let's begin with an easy one: ${firstQuestion}`);
         } else if (this.session) {
-          // Fallback if no questions were generated
-          this.session.say("I've reviewed your presentation. Let's start with a simple question: Can you give me an overview of your project and its main objectives?");
+          // Use RAG context to generate a question
+          if (pptContext) {
+            this.session.say("I've reviewed your presentation. Based on what I see in your slides, can you start by explaining the main problem your project aims to solve?");
+          } else {
+            this.session.say("I've reviewed your presentation. Let's start with a simple question: Can you give me an overview of your project and its main objectives?");
+          }
         }
       }
     } catch (error) {
       console.error('[ProjectReview] ❌ Workflow error:', error);
-      
+
       if (this.session) {
         this.session.say("I encountered an issue analyzing your presentation, but let's proceed. Can you give me an overview of your project?");
       }

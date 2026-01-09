@@ -29,18 +29,19 @@ export interface ProjectReviewStateType {
   sessionId: string;
   roomName: string;
   phase: ReviewPhase;
-  
+
   // Candidate info
   candidate: ReviewCandidateInfo | null;
-  
+
   // PPT content
   pptFile: string | null; // URL or path to uploaded file
   pptMetadata: PPTMetadata | null;
   slides: ParsedSlide[];
-  
+  pptContext: string; // RAG context from PPT chunks
+
   // AI Detection
   aiDetection: AIDetectionReport | null;
-  
+
   // Questions
   questionsPool: {
     easy: ReviewQuestion[];
@@ -50,26 +51,26 @@ export interface ProjectReviewStateType {
   currentQuestion: ReviewQuestion | null;
   questionsAsked: ReviewQuestion[];
   currentLevel: QuestionLevel;
-  
+
   // Answers & Evaluations
   answers: ReviewAnswer[];
   evaluations: ReviewEvaluation[];
-  
+
   // Report
   finalReport: ReviewReport | null;
-  
+
   // Connection
   connection: ReviewConnectionState;
-  
+
   // Time tracking
   time: ReviewTimeState;
-  
+
   // Conversation
   transcript: TranscriptEntry[];
   lastAiMessage: string;
   lastUserMessage: string;
   shouldSpeak: boolean;
-  
+
   // Error handling
   errorCount: number;
   lastError: string | null;
@@ -107,10 +108,10 @@ export const ProjectReviewState = Annotation.Root({
   sessionId: Annotation<string>,
   roomName: Annotation<string>,
   phase: Annotation<ReviewPhase>,
-  
+
   // Candidate info
   candidate: Annotation<ReviewCandidateInfo | null>,
-  
+
   // PPT content
   pptFile: Annotation<string | null>,
   pptMetadata: Annotation<PPTMetadata | null>,
@@ -118,10 +119,14 @@ export const ProjectReviewState = Annotation.Root({
     reducer: (current, update) => update.length > 0 ? update : current,
     default: () => [],
   }),
-  
+  pptContext: Annotation<string>({
+    reducer: (current, update) => update || current,
+    default: () => '',
+  }),
+
   // AI Detection
   aiDetection: Annotation<AIDetectionReport | null>,
-  
+
   // Questions
   questionsPool: Annotation<{
     easy: ReviewQuestion[];
@@ -137,7 +142,7 @@ export const ProjectReviewState = Annotation.Root({
     default: () => [],
   }),
   currentLevel: Annotation<QuestionLevel>,
-  
+
   // Answers & Evaluations - these accumulate
   answers: Annotation<ReviewAnswer[]>({
     reducer: arrayReducer,
@@ -147,16 +152,16 @@ export const ProjectReviewState = Annotation.Root({
     reducer: arrayReducer,
     default: () => [],
   }),
-  
+
   // Report
   finalReport: Annotation<ReviewReport | null>,
-  
+
   // Connection
   connection: Annotation<ReviewConnectionState>,
-  
+
   // Time tracking
   time: Annotation<ReviewTimeState>,
-  
+
   // Conversation - transcripts should always append
   transcript: Annotation<TranscriptEntry[]>({
     reducer: transcriptReducer,
@@ -165,7 +170,7 @@ export const ProjectReviewState = Annotation.Root({
   lastAiMessage: Annotation<string>,
   lastUserMessage: Annotation<string>,
   shouldSpeak: Annotation<boolean>,
-  
+
   // Error handling
   errorCount: Annotation<number>({
     reducer: (current, update) => (update !== undefined ? update : current),

@@ -135,17 +135,31 @@ export async function uploadPPT(req: Request, res: Response) {
       return res.status(403).json({ error: 'Not authorized' });
     }
 
-    // Extract PPT content (simplified - in production use a proper parser)
+    // Extract PPT content using officeparser (works server-side)
     let pptContent = '';
     try {
-      // For now, just store the filename - PPT parsing will be added later
-      // The AI agent can read the file directly
-      pptContent = `File: ${file.originalname}\nSize: ${file.size} bytes`;
+      const officeparser = await import('officeparser');
+      const filePath = path.join(UPLOAD_DIR, file.filename);
+
+      // Parse the PPT/PPTX file - returns string when called with just path
+      const parsed = await officeparser.parseOffice(filePath);
+      pptContent = typeof parsed === 'string' ? parsed : String(parsed || '');
+
+      // Clean up the content
+      if (pptContent) {
+        pptContent = pptContent
+          .split('\n')
+          .filter((line: string) => line.trim())
+          .join('\n');
+      }
+
+      console.log(`[PPT Upload] Extracted ${pptContent.length} chars from PPT`);
     } catch (e) {
-      console.warn('Could not extract PPT content:', e);
+      console.warn('[PPT Upload] Could not extract PPT content:', e);
+      pptContent = `File: ${file.originalname}\nSize: ${file.size} bytes\n(Content extraction failed)`;
     }
 
-    // Update the project review with file info
+    // Update the project review with file info and content
     const updated = await prisma.projectReview.update({
       where: { id: review.id },
       data: {
@@ -154,9 +168,34 @@ export async function uploadPPT(req: Request, res: Response) {
         pptFileSize: file.size,
         pptUploadedAt: new Date(),
         pptContent,
-        status: 'ready',
+        status: 'processing', // Set to processing while we index
       },
     });
+
+    // Index PPT content for RAG (async - don't wait)
+    if (pptContent && pptContent.length > 50) {
+      indexPptForRag(review.id, pptContent).then(count => {
+        console.log(`[PPT Upload] Indexed ${count} chunks for review ${review.id}`);
+        // Update status to ready after indexing
+        prisma.projectReview.update({
+          where: { id: review.id },
+          data: { status: 'ready' },
+        }).catch(console.error);
+      }).catch(err => {
+        console.error('[PPT Upload] RAG indexing failed:', err);
+        // Still mark as ready even if indexing fails
+        prisma.projectReview.update({
+          where: { id: review.id },
+          data: { status: 'ready' },
+        }).catch(console.error);
+      });
+    } else {
+      // Mark as ready immediately if no content to index
+      await prisma.projectReview.update({
+        where: { id: review.id },
+        data: { status: 'ready' },
+      });
+    }
 
     return res.json({
       success: true,
@@ -166,11 +205,23 @@ export async function uploadPPT(req: Request, res: Response) {
         size: file.size,
         url: `/uploads/ppt/${file.filename}`,
       },
-      status: updated.status,
+      status: 'processing',
+      contentExtracted: pptContent.length > 50,
     });
   } catch (error) {
     console.error('Upload PPT error:', error);
     return res.status(500).json({ error: 'Failed to upload file' });
+  }
+}
+
+// Helper function to index PPT content for RAG
+async function indexPptForRag(reviewId: string, pptContent: string): Promise<number> {
+  try {
+    const { indexPptContent } = await import('../services/rag/index.js');
+    return await indexPptContent(reviewId, pptContent);
+  } catch (error) {
+    console.error('[RAG] Indexing error:', error);
+    return 0;
   }
 }
 

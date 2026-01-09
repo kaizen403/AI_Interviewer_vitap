@@ -1,7 +1,10 @@
+# Capstone Reviewer - Local Development
+# Uses pgvector for PostgreSQL and local LiveKit server
+
 services:
   postgres:
-    image: postgres:16-alpine
-    container_name: capstone_reviewer_db
+    image: pgvector/pgvector:pg16
+    container_name: capstone-postgres
     environment:
       POSTGRES_USER: capstone
       POSTGRES_PASSWORD: capstone123
@@ -15,6 +18,21 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: capstone-livekit
+    command: --dev --bind 0.0.0.0
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+
+  redis:
+    image: redis:alpine
+    container_name: capstone-redis
+    ports:
+      - "6379:6379"
 
 volumes:
   capstone_pgdata:
