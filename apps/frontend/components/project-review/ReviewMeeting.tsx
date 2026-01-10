@@ -237,41 +237,46 @@ export function ReviewMeeting({ review, onEnd }: ReviewMeetingProps) {
       {/* Main Content Area - PPT on left, Videos on right */}
       <main className="flex-1 p-4 overflow-hidden">
         <div className="h-full grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Left: PPT Viewer (takes 2 columns on large screens) */}
+          {/* Left: PPT Info Card (takes 2 columns on large screens) */}
           <div className="lg:col-span-2 bg-gray-800 rounded-xl overflow-hidden flex flex-col">
-            {/* PPT Header */}
-            <div className="bg-gray-700/50 px-4 py-2 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Presentation className="w-4 h-4 text-blue-400" />
-                <span className="text-sm text-white truncate max-w-[300px]">
-                  {review.pptFileName || 'Presentation'}
-                </span>
-              </div>
-              {review.pptFileUrl && (
-                <a
-                  href={`${getBackendUrl()}${review.pptFileUrl}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white transition flex items-center gap-1 text-xs"
-                  title="Download file"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  Open
-                </a>
-              )}
-            </div>
-
-            {/* PPT Content */}
-            <div className="flex-1 relative bg-gray-900 flex items-center justify-center">
+            {/* PPT Content - Simple Card */}
+            <div className="flex-1 flex items-center justify-center p-8">
               {review.pptFileUrl ? (
-                <iframe
-                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(`${getBackendUrl()}${review.pptFileUrl}`)}`}
-                  className="w-full h-full border-0"
-                  title="PPT Viewer"
-                />
+                <div className="text-center max-w-md">
+                  {/* Icon */}
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+                    <Presentation className="w-12 h-12 text-blue-400" />
+                  </div>
+
+                  {/* File Info */}
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    {review.pptFileName || 'Presentation'}
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-6">
+                    Your presentation is ready for review
+                  </p>
+
+                  {/* Download Button */}
+                  <a
+                    href={`${getBackendUrl()}${review.pptFileUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open Presentation
+                  </a>
+
+                  {/* Tip */}
+                  <p className="text-gray-500 text-xs mt-4">
+                    The AI reviewer has analyzed your slides
+                  </p>
+                </div>
               ) : (
                 <div className="text-center p-8">
-                  <Presentation className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-gray-700/50 flex items-center justify-center">
+                    <Presentation className="w-12 h-12 text-gray-600" />
+                  </div>
                   <p className="text-gray-400">No presentation uploaded</p>
                 </div>
               )}
