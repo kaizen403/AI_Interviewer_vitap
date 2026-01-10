@@ -397,8 +397,18 @@ export async function studentJoined(req: Request, res: Response) {
   try {
     const { roomId } = req.params;
 
+    // Get review with student info
+    const review = await prisma.projectReview.findUnique({
+      where: { roomId },
+      include: { student: true },
+    });
+
+    if (!review) {
+      return res.status(404).json({ error: 'Project review not found' });
+    }
+
     // Update status to in_progress
-    const updated = await prisma.projectReview.update({
+    await prisma.projectReview.update({
       where: { roomId },
       data: {
         status: 'in_progress',
@@ -406,9 +416,26 @@ export async function studentJoined(req: Request, res: Response) {
       },
     });
 
-    if (!updated) {
-      return res.status(404).json({ error: 'Project review not found' });
-    }
+    // Add host as a participant
+    const hostIdentity = `student-${review.student?.regNo || crypto.randomBytes(4).toString('hex')}`;
+    await prisma.reviewParticipant.upsert({
+      where: {
+        reviewId_identity: {
+          reviewId: review.id,
+          identity: hostIdentity,
+        },
+      },
+      create: {
+        reviewId: review.id,
+        name: review.student?.name || 'Host',
+        identity: hostIdentity,
+        isHost: true,
+      },
+      update: {
+        leftAt: null,
+        joinedAt: new Date(),
+      },
+    });
 
     // Dispatch the project review agent
     try {
