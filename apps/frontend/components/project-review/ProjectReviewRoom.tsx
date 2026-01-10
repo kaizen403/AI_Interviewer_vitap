@@ -168,6 +168,8 @@ export function ProjectReviewRoom({ roomId, studentId, review }: ProjectReviewRo
         <ReviewMeeting
           review={{
             projectTitle: review.projectTitle,
+            pptFileName: review.pptFileName,
+            pptFileUrl: review.pptFileUrl,
             student: review.student,
           }}
           onEnd={handleMeetingEnd}

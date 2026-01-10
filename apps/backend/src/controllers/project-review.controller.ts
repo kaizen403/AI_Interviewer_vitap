@@ -85,6 +85,9 @@ export async function getReviewByRoomId(req: Request, res: Response) {
       return res.status(403).json({ error: 'Not authorized to access this review' });
     }
 
+    // Debug logging for pptFileUrl
+    console.log(`[getReviewByRoomId] roomId=${roomId}, pptFileName=${review.pptFileName}, pptFileUrl=${review.pptFileUrl}`);
+
     return res.json({
       id: review.id,
       roomId: review.roomId,
@@ -199,6 +202,7 @@ export async function uploadPPT(req: Request, res: Response) {
     }
 
     // Update the project review with file info and content
+    console.log(`[PPT Upload] Saving pptFileUrl to DB: ${pptFileUrl}`);
     const updated = await prisma.projectReview.update({
       where: { id: review.id },
       data: {
@@ -210,6 +214,7 @@ export async function uploadPPT(req: Request, res: Response) {
         status: 'processing', // Set to processing while we index
       },
     });
+    console.log(`[PPT Upload] DB updated, pptFileUrl from DB: ${updated.pptFileUrl}`);
 
     // Index PPT content for RAG (async - don't wait)
     if (pptContent && pptContent.length > 50) {
