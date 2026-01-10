@@ -395,7 +395,7 @@ Please contact support for assistance.`,
       console.log('[ProjectReview] 🔄 Running analysis workflow...');
 
       if (this.graph) {
-        const result = await this.graph.invoke(this.currentState);
+        const result = await this.graph.invoke(this.currentState, { recursionLimit: 100 });
         this.currentState = result;
 
         console.log('[ProjectReview] ✅ Workflow complete');

@@ -162,10 +162,13 @@ export abstract class BaseVoiceAgent<
 
     try {
       // Invoke the graph with timeout protection
-      const result = (await withTimeout(this.graph.invoke(inputState), {
-        timeoutMs: GRAPH_INVOKE_TIMEOUT_MS,
-        timeoutMessage: "Graph invocation timed out",
-      })) as TState & { lastAiMessage?: string };
+      const result = (await withTimeout(
+        this.graph.invoke(inputState, { recursionLimit: 100 }),
+        {
+          timeoutMs: GRAPH_INVOKE_TIMEOUT_MS,
+          timeoutMessage: "Graph invocation timed out",
+        }
+      )) as TState & { lastAiMessage?: string };
 
       // Extract AI response
       const response =
@@ -541,7 +544,9 @@ export abstract class BaseVoiceAgent<
       console.log(`[${this.config.name}] 📊 Invoking graph workflow...`);
 
       this.graph
-        .invoke(this.currentState)
+        .invoke(this.currentState, {
+          recursionLimit: 100  // Increase from default 25 for long interview flows
+        })
         .then((result: any) => {
           this.currentState = result;
           console.log(`[${this.config.name}] ✅ Graph workflow completed`);
