@@ -457,6 +457,10 @@ export abstract class BaseVoiceAgent<
         await this.session.start({
           agent,
           room: ctx.room,
+          // Prevent session from closing on participant disconnect (e.g., network reconnects)
+          inputOptions: {
+            closeOnParticipantLeft: false,
+          } as any,
         });
         console.log(
           `[${this.config.name}] ✅ Voice agent session started successfully!`,
