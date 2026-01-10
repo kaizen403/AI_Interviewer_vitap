@@ -23,7 +23,7 @@ import { Track, RoomEvent, ConnectionState } from 'livekit-client';
 import { Button } from '@/components/ui/button';
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff,
-  Monitor, MonitorOff, Loader2, Users, Presentation, ExternalLink
+  Monitor, MonitorOff, Loader2, Users, Presentation, ExternalLink, Copy, Link2
 } from 'lucide-react';
 import { getBackendUrl } from '@/lib/api-config';
 
@@ -32,6 +32,7 @@ interface ReviewMeetingProps {
     projectTitle: string;
     pptFileName?: string;
     pptFileUrl?: string;
+    joinCode?: string;
     student?: {
       name: string;
       regNo?: string;
@@ -57,6 +58,18 @@ export function ReviewMeeting({ review, onEnd }: ReviewMeetingProps) {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [duration, setDuration] = useState(0);
+  const [codeCopied, setCodeCopied] = useState(false);
+
+  // Copy join code or shareable link
+  const copyJoinInfo = (type: 'code' | 'link') => {
+    if (!review.joinCode) return;
+    const textToCopy = type === 'code'
+      ? review.joinCode
+      : `${window.location.origin}/join/${review.joinCode}`;
+    navigator.clipboard.writeText(textToCopy);
+    setCodeCopied(true);
+    setTimeout(() => setCodeCopied(false), 2000);
+  };
 
   // Get all tracks
   const tracks = useTracks(
@@ -229,7 +242,31 @@ export function ReviewMeeting({ review, onEnd }: ReviewMeetingProps) {
           <span className="text-gray-400 text-sm">|</span>
           <span className="text-gray-400 text-sm">{formatDuration(duration)}</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          {/* Join Code */}
+          {review.joinCode && (
+            <div className="flex items-center gap-2 bg-gray-700/50 px-3 py-1.5 rounded-lg">
+              <span className="text-gray-400 text-xs">Room Code:</span>
+              <code className="text-green-400 font-mono font-bold">{review.joinCode}</code>
+              <button
+                onClick={() => copyJoinInfo('code')}
+                className="p-1 text-gray-400 hover:text-white transition"
+                title="Copy code"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => copyJoinInfo('link')}
+                className="p-1 text-gray-400 hover:text-white transition"
+                title="Copy shareable link"
+              >
+                <Link2 className="w-3.5 h-3.5" />
+              </button>
+              {codeCopied && (
+                <span className="text-green-400 text-xs">Copied!</span>
+              )}
+            </div>
+          )}
           <div className="flex items-center gap-1 text-gray-400">
             <Users className="w-4 h-4" />
             <span className="text-sm">{remoteParticipants.length + 1}</span>

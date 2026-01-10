@@ -30,6 +30,7 @@ interface Review {
   pptFileUrl?: string;
   pptUploaded: boolean;
   pptContent?: string;
+  joinCode?: string;
   status: string;
   student?: {
     name: string;

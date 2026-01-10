@@ -31,6 +31,7 @@ interface Review {
   githubUrl?: string;
   pptFileName?: string;
   pptFileUrl?: string;
+  joinCode?: string;
   status: string;
   student?: {
     name: string;
@@ -137,6 +138,7 @@ export function ProjectReviewRoom({ roomId, studentId, review }: ProjectReviewRo
       <ReviewLobby
         review={{
           projectTitle: review.projectTitle,
+          joinCode: review.joinCode,
           student: review.student,
         }}
         onJoin={handleJoin}
@@ -170,6 +172,7 @@ export function ProjectReviewRoom({ roomId, studentId, review }: ProjectReviewRo
             projectTitle: review.projectTitle,
             pptFileName: review.pptFileName,
             pptFileUrl: review.pptFileUrl,
+            joinCode: review.joinCode,
             student: review.student,
           }}
           onEnd={handleMeetingEnd}
