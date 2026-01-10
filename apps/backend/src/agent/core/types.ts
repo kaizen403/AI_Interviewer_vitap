@@ -275,5 +275,11 @@ export interface AgentMetadata {
     email?: string;
   };
   projectTitle?: string;
+  projectDescription?: string;
+  githubUrl?: string;
+  /** PPT file URL (if already uploaded) */
+  pptUrl?: string;
+  /** PPT extracted text content (if already processed) */
+  pptContent?: string;
   customData?: Record<string, unknown>;
 }

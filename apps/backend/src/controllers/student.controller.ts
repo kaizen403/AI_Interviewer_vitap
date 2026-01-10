@@ -36,37 +36,33 @@ function parseVitEmail(email: string): { name: string; regNo: string } | null {
 /**
  * Register or login a student
  * POST /api/students/register
+ * Now only requires name - email/regNo generated automatically
  */
 export async function registerStudent(req: Request, res: Response) {
     try {
-        const { email, name } = req.body;
+        const { name, email } = req.body;
 
-        if (!email || typeof email !== 'string') {
-            return res.status(400).json({ error: 'Email is required' });
+        // Name is required
+        if (!name || typeof name !== 'string' || name.trim().length < 2) {
+            return res.status(400).json({ error: 'Name is required (at least 2 characters)' });
         }
 
-        // Validate email domain
-        const emailLower = email.toLowerCase().trim();
-        if (!emailLower.endsWith(`@${ALLOWED_DOMAIN}`)) {
-            return res.status(400).json({
-                error: `Only ${ALLOWED_DOMAIN} emails are allowed`
-            });
+        const studentName = name.trim();
+
+        // Generate a unique identifier based on name
+        const nameLower = studentName.toLowerCase().replace(/\s+/g, '');
+        const uniqueId = crypto.randomBytes(4).toString('hex');
+        const regNo = `${nameLower.substring(0, 4).toUpperCase()}${uniqueId.toUpperCase()}`;
+
+        // Generate email (or use provided)
+        let studentEmail = email?.toLowerCase()?.trim();
+        if (!studentEmail) {
+            studentEmail = `${nameLower}.${regNo.toLowerCase()}@review.local`;
         }
 
-        // Parse email to extract name and reg no
-        const parsed = parseVitEmail(emailLower);
-        if (!parsed) {
-            return res.status(400).json({
-                error: 'Invalid email format. Expected: name.regno@vitapstudent.ac.in'
-            });
-        }
-
-        // Use provided name or parsed name
-        const studentName = name?.trim() || parsed.name;
-
-        // Check if student exists
+        // Check if student exists by email
         let student = await prisma.student.findUnique({
-            where: { email: emailLower },
+            where: { email: studentEmail },
         });
 
         if (student) {
@@ -81,9 +77,9 @@ export async function registerStudent(req: Request, res: Response) {
             // Create new student
             student = await prisma.student.create({
                 data: {
-                    email: emailLower,
+                    email: studentEmail,
                     name: studentName,
-                    regNo: parsed.regNo,
+                    regNo,
                 },
             });
         }

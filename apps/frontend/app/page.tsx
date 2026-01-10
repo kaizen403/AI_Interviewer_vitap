@@ -8,7 +8,6 @@ const BACKEND_URL = getBackendUrl();
 
 export default function Home() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,7 +21,7 @@ export default function Home() {
       const res = await fetch(`${BACKEND_URL}/api/students/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({ name }),
       });
 
       const data = await res.json();
@@ -59,7 +58,7 @@ export default function Home() {
               Capstone Reviewer
             </h1>
             <p className="text-gray-400">
-              AI-powered project presentation review for VIT AP students
+              AI-powered project presentation review
             </p>
           </div>
 
@@ -67,7 +66,7 @@ export default function Home() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Full Name
+                Your Name
               </label>
               <input
                 type="text"
@@ -76,24 +75,8 @@ export default function Home() {
                 placeholder="Enter your name"
                 className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 required
+                minLength={2}
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                VIT AP Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name.regno@vitapstudent.ac.in"
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                required
-              />
-              <p className="mt-1.5 text-xs text-gray-500">
-                Only @vitapstudent.ac.in emails are allowed
-              </p>
             </div>
 
             {error && (
@@ -104,7 +87,7 @@ export default function Home() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || name.trim().length < 2}
               className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
@@ -113,10 +96,10 @@ export default function Home() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Signing in...
+                  Joining...
                 </span>
               ) : (
-                'Continue'
+                'Get Started'
               )}
             </button>
           </form>

@@ -181,11 +181,15 @@ Use this presentation content to:
     roomName: string,
     metadata: AgentMetadata
   ): ProjectReviewStateType {
+    // Check if PPT was already uploaded (from room metadata)
+    const hasPptUploaded = !!(metadata.pptUrl || metadata.pptContent);
+
     return {
       // Session info
       sessionId,
       roomName,
-      phase: ReviewPhase.UPLOAD,
+      // Skip UPLOAD phase if PPT already uploaded
+      phase: hasPptUploaded ? ReviewPhase.PARSING : ReviewPhase.UPLOAD,
 
       // Candidate (will be populated from metadata)
       candidate: metadata.candidate ? {
@@ -195,11 +199,11 @@ Use this presentation content to:
         projectTitle: metadata.projectTitle || 'Project',
       } : null,
 
-      // PPT content
-      pptFile: null,
+      // PPT content - use from metadata if available
+      pptFile: metadata.pptUrl || null,
       pptMetadata: null,
       slides: [],
-      pptContext: '', // RAG context from PPT chunks
+      pptContext: metadata.pptContent || '', // Use pptContent from room metadata
 
       // AI Detection
       aiDetection: null,

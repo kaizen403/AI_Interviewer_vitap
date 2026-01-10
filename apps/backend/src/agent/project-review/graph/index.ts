@@ -48,12 +48,15 @@ export type NodeName = typeof NODE_NAMES[keyof typeof NODE_NAMES];
  * Route after upload wait
  */
 function routeFromUpload(state: ProjectReviewStateType): string {
-  if (state.pptFile) {
+  // Check if we have PPT file OR extracted content
+  if (state.pptFile || state.pptContext) {
+    console.log('[ProjectReview] PPT available, proceeding to parsing...');
     return NODE_NAMES.pptParsing;
   }
   if (state.errorCount >= 3) {
     return NODE_NAMES.handleError;
   }
+  console.log('[ProjectReview] No PPT yet, waiting for upload...');
   return NODE_NAMES.waitForUpload;
 }
 
@@ -65,19 +68,19 @@ function routeFromQuestion(state: ProjectReviewStateType): string {
   if (state.currentQuestion) {
     return NODE_NAMES.evaluateAnswer;
   }
-  
+
   // Check if we've exhausted all questions
   const { questionsPool, questionsAsked } = state;
   const totalAsked = questionsAsked.length;
-  const totalAvailable = 
-    questionsPool.easy.length + 
-    questionsPool.medium.length + 
+  const totalAvailable =
+    questionsPool.easy.length +
+    questionsPool.medium.length +
     questionsPool.hard.length;
-  
+
   if (totalAsked >= totalAvailable || totalAsked >= 10) {
     return NODE_NAMES.reportGeneration;
   }
-  
+
   return NODE_NAMES.evaluateAnswer;
 }
 
@@ -102,13 +105,13 @@ async function waitForUploadNode(
   state: ProjectReviewStateType
 ): Promise<Partial<ProjectReviewStateType>> {
   console.log('[ProjectReview] Waiting for PPT upload...');
-  
+
   if (!state.pptFile) {
     return {
       lastAiMessage: "I'm waiting for your presentation file. Please upload your PowerPoint.",
     };
   }
-  
+
   return {};
 }
 
@@ -119,7 +122,7 @@ async function handleErrorNode(
   state: ProjectReviewStateType
 ): Promise<Partial<ProjectReviewStateType>> {
   console.error('[ProjectReview] Error state:', state.lastError);
-  
+
   return {
     phase: ReviewPhase.ERROR,
     lastAiMessage: `I apologize, but we've encountered an issue: ${state.lastError || 'Unknown error'}. 
