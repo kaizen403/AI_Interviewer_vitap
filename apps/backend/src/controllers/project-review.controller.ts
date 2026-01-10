@@ -11,6 +11,7 @@ import crypto from 'crypto';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
+import { uploadToR2, isR2Configured } from '../services/r2.service.js';
 
 // LiveKit credentials
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
@@ -181,12 +182,28 @@ export async function uploadPPT(req: Request, res: Response) {
       pptContent = `File: ${file.originalname}\nSize: ${file.size} bytes\n(Content extraction failed)`;
     }
 
+    // Upload to R2 for public access (needed for Office viewer)
+    let pptFileUrl = `/uploads/ppt/${file.filename}`; // Fallback to local
+
+    if (isR2Configured()) {
+      try {
+        const localFilePath = path.join(UPLOAD_DIR, file.filename);
+        pptFileUrl = await uploadToR2(localFilePath, file.filename);
+        console.log(`[PPT Upload] File uploaded to R2: ${pptFileUrl}`);
+      } catch (r2Error) {
+        console.error('[PPT Upload] R2 upload failed, using local storage:', r2Error);
+        // Keep local URL as fallback
+      }
+    } else {
+      console.log('[PPT Upload] R2 not configured, using local storage');
+    }
+
     // Update the project review with file info and content
     const updated = await prisma.projectReview.update({
       where: { id: review.id },
       data: {
         pptFileName: file.originalname,
-        pptFileUrl: `/uploads/ppt/${file.filename}`,
+        pptFileUrl, // Now uses R2 public URL if available
         pptFileSize: file.size,
         pptUploadedAt: new Date(),
         pptContent,
