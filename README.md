@@ -1,130 +1,96 @@
 # Capstone Reviewer
 
-AI-powered project presentation review system for VIT AP students.
+AI-powered capstone project presentation review system.
 
-## Features
+## System Design
 
-- 🎓 Student authentication with VIT AP email validation
-- 📊 PPT upload and content extraction
-- 🎤 Real-time voice-based AI interview
-- 🤖 Intelligent questioning based on presentation content
-- 📝 Review summary and feedback
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              FRONTEND (Next.js)                             │
+│                                                                             │
+│   Student Auth → PPT Upload → Review Session (LiveKit) → Results Page       │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              BACKEND (Express)                              │
+│                                                                             │
+│   REST API                           Voice Agent (LiveKit)                  │
+│   ├── /api/students                  ├── Deepgram STT                       │
+│   ├── /api/project-review            ├── OpenAI GPT-4o (LangGraph)          │
+│   └── /api/livekit                   └── Cartesia TTS                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                    ┌─────────────────┼─────────────────┐
+                    ▼                 ▼                 ▼
+              ┌──────────┐     ┌───────────┐     ┌───────────┐
+              │PostgreSQL│     │ LiveKit   │     │   R2      │
+              │(Prisma)  │     │ Cloud     │     │ (Storage) │
+              └──────────┘     └───────────┘     └───────────┘
+```
 
-## Tech Stack
+### Data Flow
 
-- **Frontend**: Next.js 16, React 19, TailwindCSS
-- **Backend**: Node.js, Express, TypeScript
-- **Database**: PostgreSQL with Prisma ORM
-- **AI/ML**: OpenAI GPT-4o, LangChain, LiveKit Voice Agents
-- **Voice**: Deepgram STT, Cartesia TTS, Silero VAD
+1. Student registers with VIT email, logs in
+2. Creates project review, uploads PPT
+3. PPT stored in Cloudflare R2, content extracted for RAG
+4. Student joins LiveKit room, AI agent connects
+5. Agent uses LangGraph workflow: greet → ask questions → evaluate → summarize
+6. Review results saved to database
 
-## Local Development
+## Quick Start
 
 ### Prerequisites
 
 - Node.js 20+
-- pnpm 10+
-- Docker (for PostgreSQL)
-- LiveKit Server (local or cloud)
+- pnpm
+- Docker
 
 ### Setup
 
-1. Clone and install:
 ```bash
+# Clone and install
 git clone <repo>
 cd capstone_reviewer_v2
 pnpm install
-```
 
-2. Start PostgreSQL:
-```bash
+# Start PostgreSQL
 docker compose up -d
-```
 
-3. Setup database:
-```bash
+# Setup backend
 cd apps/backend
 cp .env.example .env
-# Edit .env with your API keys
+# Fill in API keys (OpenAI, Deepgram, Cartesia, LiveKit)
 pnpm prisma migrate dev
 pnpm prisma generate
-```
-
-4. Download voice models:
-```bash
 pnpm agent:download
-```
 
-5. Start development:
-```bash
+# Start all services
 cd ../..
 pnpm dev
 ```
 
-- Frontend: http://localhost:3050
-- Backend: http://localhost:3040
+Frontend: http://localhost:3050  
+Backend: http://localhost:3040
 
-## Deploy to Render
+### Environment Variables
 
-### Using Blueprint
+| Variable | Description |
+|----------|-------------|
+| DATABASE_URL | PostgreSQL connection string |
+| LIVEKIT_API_KEY | LiveKit API key |
+| LIVEKIT_API_SECRET | LiveKit API secret |
+| LIVEKIT_URL | LiveKit WebSocket URL |
+| OPENAI_API_KEY | OpenAI API key |
+| DEEPGRAM_API_KEY | Deepgram API key |
+| CARTESIA_API_KEY | Cartesia API key |
+| R2_ACCESS_KEY_ID | Cloudflare R2 access key |
+| R2_SECRET_ACCESS_KEY | Cloudflare R2 secret |
+| R2_PUBLIC_URL | R2 public bucket URL |
 
-1. Push to GitHub
-2. Go to Render Dashboard → New → Blueprint
-3. Connect your repo
-4. Select `render.yaml`
-5. Configure environment variables:
-   - `DATABASE_URL` - PostgreSQL connection string
-   - `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `LIVEKIT_URL` - LiveKit Cloud
-   - `OPENAI_API_KEY` - OpenAI
-   - `DEEPGRAM_API_KEY` - Deepgram
-   - `CARTESIA_API_KEY` - Cartesia
+## Deploy
 
-### Services Created
-
-| Service | Type | Description |
-|---------|------|-------------|
-| `capstone-reviewer-api` | Web | Express API server |
-| `capstone-reviewer-voice-agent` | Worker | LiveKit Voice Agent |
-| `capstone-reviewer-frontend` | Web | Next.js frontend |
-
-### Required External Services
-
-1. **LiveKit Cloud** (https://cloud.livekit.io)
-   - Create a project
-   - Get API key and secret
-   - Use the WebSocket URL
-
-2. **PostgreSQL** 
-   - Render PostgreSQL or external (Neon, Supabase)
-
-3. **OpenAI** (https://platform.openai.com)
-   - API key for GPT-4o
-
-4. **Deepgram** (https://console.deepgram.com)
-   - API key for speech-to-text
-
-5. **Cartesia** (https://play.cartesia.ai)
-   - API key for text-to-speech
-
-## Project Structure
-
-```
-capstone_reviewer_v2/
-├── apps/
-│   ├── backend/          # Express API + Voice Agent
-│   │   ├── src/
-│   │   │   ├── agent/    # LiveKit Voice Agents
-│   │   │   ├── controllers/
-│   │   │   ├── routes/
-│   │   │   └── config/
-│   │   └── prisma/       # Database schema
-│   └── frontend/         # Next.js App
-│       ├── app/          # Pages
-│       ├── components/   # React components
-│       └── lib/          # Utilities
-├── render.yaml           # Render deployment blueprint
-└── docker-compose.yml    # Local PostgreSQL
-```
+Uses `render.yaml` for Render deployment. Push to GitHub and connect as Blueprint.
 
 ## License
 
