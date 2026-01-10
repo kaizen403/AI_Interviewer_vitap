@@ -41,6 +41,15 @@ interface ReviewMeetingProps {
 }
 
 export function ReviewMeeting({ review, onEnd }: ReviewMeetingProps) {
+  // Debug: Log the review data to see what we're receiving
+  console.log('[ReviewMeeting] Review data:', {
+    projectTitle: review.projectTitle,
+    pptFileName: review.pptFileName,
+    pptFileUrl: review.pptFileUrl,
+    hasPptUrl: !!review.pptFileUrl,
+    urlStartsWithHttp: review.pptFileUrl?.startsWith('http'),
+  });
+
   const room = useRoomContext();
   const connectionState = useConnectionState();
   const { localParticipant } = useLocalParticipant();
