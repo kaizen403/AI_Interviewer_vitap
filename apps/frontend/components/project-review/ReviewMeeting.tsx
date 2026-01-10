@@ -4,6 +4,7 @@
  * Review Meeting Component
  * 
  * Active review session with LiveKit video/audio
+ * Layout: PPT slides on left, video feeds on right, controls at bottom
  */
 
 import { useCallback, useState, useEffect, useRef } from 'react';
@@ -22,8 +23,9 @@ import { Track, RoomEvent, ConnectionState } from 'livekit-client';
 import { Button } from '@/components/ui/button';
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff,
-  Monitor, MonitorOff, Loader2, Users
+  Monitor, MonitorOff, Loader2, Users, FilePresentation, ExternalLink
 } from 'lucide-react';
+import { getBackendUrl } from '@/lib/api-config';
 
 interface ReviewMeetingProps {
   review: {
@@ -232,103 +234,115 @@ export function ReviewMeeting({ review, onEnd }: ReviewMeetingProps) {
         </div>
       </header>
 
-      {/* Main Video Area */}
+      {/* Main Content Area - PPT on left, Videos on right */}
       <main className="flex-1 p-4 overflow-hidden">
-        <div className="h-full grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Main View (Screen share or remote video) */}
-          <div className="lg:col-span-3 bg-gray-800 rounded-xl overflow-hidden relative">
-            {/* Screen share takes priority */}
-            {localScreenTrack?.publication?.track ? (
-              <TrackRefContext.Provider value={localScreenTrack}>
-                <VideoTrack
-                  trackRef={localScreenTrack}
-                  className="w-full h-full object-contain"
-                />
-              </TrackRefContext.Provider>
-            ) : remoteVideoTracks[0]?.publication?.track ? (
-              <TrackRefContext.Provider value={remoteVideoTracks[0]}>
-                <VideoTrack
-                  trackRef={remoteVideoTracks[0]}
-                  className="w-full h-full object-cover"
-                />
-              </TrackRefContext.Provider>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-3xl font-semibold text-white">AI</span>
-                  </div>
-                  <p className="text-gray-400">AI Reviewer</p>
-                </div>
+        <div className="h-full grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Left: PPT Viewer (takes 2 columns on large screens) */}
+          <div className="lg:col-span-2 bg-gray-800 rounded-xl overflow-hidden flex flex-col">
+            {/* PPT Header */}
+            <div className="bg-gray-700/50 px-4 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FilePresentation className="w-4 h-4 text-blue-400" />
+                <span className="text-sm text-white truncate max-w-[300px]">
+                  {review.pptFileName || 'Presentation'}
+                </span>
               </div>
-            )}
+              {review.pptFileUrl && (
+                <a
+                  href={`${getBackendUrl()}${review.pptFileUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white transition flex items-center gap-1 text-xs"
+                  title="Download file"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Open
+                </a>
+              )}
+            </div>
 
-            {/* Local PIP when showing remote or screen */}
-            {(remoteVideoTracks.length > 0 || isScreenSharing) && localVideoTrack && (
-              <div className="absolute bottom-4 right-4 w-48 aspect-video bg-gray-900 rounded-lg overflow-hidden shadow-xl">
-                {isCameraOn && localVideoTrack.publication?.track ? (
-                  <TrackRefContext.Provider value={localVideoTrack}>
-                    <VideoTrack
-                      trackRef={localVideoTrack}
-                      className="w-full h-full object-cover"
-                      style={{ transform: 'scaleX(-1)' }}
-                    />
-                  </TrackRefContext.Provider>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-700">
-                    <span className="text-lg font-semibold text-white">
-                      {review.student?.name?.charAt(0).toUpperCase() || 'S'}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* PPT Content */}
+            <div className="flex-1 relative bg-gray-900 flex items-center justify-center">
+              {review.pptFileUrl ? (
+                <iframe
+                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(`${getBackendUrl()}${review.pptFileUrl}`)}`}
+                  className="w-full h-full border-0"
+                  title="PPT Viewer"
+                />
+              ) : (
+                <div className="text-center p-8">
+                  <FilePresentation className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400">No presentation uploaded</p>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Side Panel - Local video when not in PIP */}
-          <div className="hidden lg:flex flex-col gap-4">
-            {/* Local Video */}
-            {!remoteVideoTracks.length && !isScreenSharing && (
-              <div className="aspect-video bg-gray-800 rounded-xl overflow-hidden relative">
-                {isCameraOn && localVideoTrack?.publication?.track ? (
-                  <TrackRefContext.Provider value={localVideoTrack}>
-                    <VideoTrack
-                      trackRef={localVideoTrack}
-                      className="w-full h-full object-cover"
-                      style={{ transform: 'scaleX(-1)' }}
-                    />
-                  </TrackRefContext.Provider>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-700">
-                    <span className="text-2xl font-semibold text-white">
-                      {review.student?.name?.charAt(0).toUpperCase() || 'S'}
-                    </span>
+          {/* Right: Video feeds stacked vertically */}
+          <div className="flex flex-col gap-4">
+            {/* AI Reviewer Video */}
+            <div className="flex-1 bg-gray-800 rounded-xl overflow-hidden relative min-h-[180px]">
+              {remoteVideoTracks[0]?.publication?.track ? (
+                <TrackRefContext.Provider value={remoteVideoTracks[0]}>
+                  <VideoTrack
+                    trackRef={remoteVideoTracks[0]}
+                    className="w-full h-full object-cover"
+                  />
+                </TrackRefContext.Provider>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-800">
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-2">
+                      <span className="text-xl font-semibold text-blue-400">AI</span>
+                    </div>
+                    <p className="text-gray-400 text-sm">AI Reviewer</p>
                   </div>
-                )}
-                <div className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded text-xs text-white">
-                  You
                 </div>
+              )}
+              <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-xs text-white">
+                AI Reviewer
               </div>
-            )}
+            </div>
 
-            {/* Info Panel */}
-            <div className="flex-1 bg-gray-800/50 rounded-xl p-4">
-              <h3 className="text-sm font-medium text-gray-400 mb-3">Review Info</h3>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <p className="text-gray-500">Student</p>
-                  <p className="text-white">{review.student?.name || 'Student'}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Project</p>
-                  <p className="text-white">{review.projectTitle}</p>
-                </div>
-                {review.pptFileName && (
-                  <div>
-                    <p className="text-gray-500">Presentation</p>
-                    <p className="text-white truncate">{review.pptFileName}</p>
+            {/* Your Video */}
+            <div className="flex-1 bg-gray-800 rounded-xl overflow-hidden relative min-h-[180px]">
+              {isCameraOn && localVideoTrack?.publication?.track ? (
+                <TrackRefContext.Provider value={localVideoTrack}>
+                  <VideoTrack
+                    trackRef={localVideoTrack}
+                    className="w-full h-full object-cover"
+                    style={{ transform: 'scaleX(-1)' }}
+                  />
+                </TrackRefContext.Provider>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-800">
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-2">
+                      <span className="text-xl font-semibold text-green-400">
+                        {review.student?.name?.charAt(0).toUpperCase() || 'Y'}
+                      </span>
+                    </div>
+                    <p className="text-gray-400 text-sm">{review.student?.name || 'You'}</p>
                   </div>
-                )}
+                </div>
+              )}
+              <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-xs text-white">
+                You {!isCameraOn && '(Camera off)'}
+              </div>
+            </div>
+
+            {/* Session Info (compact) */}
+            <div className="bg-gray-800/50 rounded-xl p-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-400">Duration</span>
+                <span className="text-white font-mono">{formatDuration(duration)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm mt-1">
+                <span className="text-gray-400">Participants</span>
+                <span className="text-white flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  {remoteParticipants.length + 1}
+                </span>
               </div>
             </div>
           </div>

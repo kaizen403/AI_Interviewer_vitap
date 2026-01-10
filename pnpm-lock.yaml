@@ -119,6 +119,9 @@ importers:
       concurrently:
         specifier: ^9.2.1
         version: 9.2.1
+      pdf-poppler:
+        specifier: ^0.2.3
+        version: 0.2.3
       supertest:
         specifier: ^7.1.4
         version: 7.2.2
@@ -4083,6 +4086,9 @@ packages:
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
+
+  pdf-poppler@0.2.3:
+    resolution: {integrity: sha512-nUczP3M/W4c8/3F6il0LmkxkF33qTKQyxeBmUnPbQLxxhtBX42zfpZqnLysomvMdb756qVR7n5kvNr+LzisXQw==}
 
   pdfjs-dist@5.4.530:
     resolution: {integrity: sha512-r1hWsSIGGmyYUAHR26zSXkxYWLXLMd6AwqcaFYG9YUZ0GBf5GvcjJSeo512tabM4GYFhxhl5pMCmPr7Q72Rq2Q==}
@@ -9256,6 +9262,8 @@ snapshots:
   path-to-regexp@8.3.0: {}
 
   pathe@2.0.3: {}
+
+  pdf-poppler@0.2.3: {}
 
   pdfjs-dist@5.4.530:
     optionalDependencies:
