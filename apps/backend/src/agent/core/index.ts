@@ -12,6 +12,12 @@ export * from './llm.js';
 // Core utilities (retry, logging, config, checkpointing, typed routes)
 export * from './utils/index.js';
 
+// Providers (STT, TTS, VAD, turn detection)
+export * from './providers/index.js';
+
+// Base utilities (event handlers, data messages, metadata parsing)
+export * from './base/index.js';
+
 // Voice agent base class
 export { BaseVoiceAgent } from './voice-agent.js';
 

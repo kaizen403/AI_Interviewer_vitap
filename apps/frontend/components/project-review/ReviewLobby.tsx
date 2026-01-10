@@ -15,6 +15,7 @@ interface ReviewLobbyProps {
   review: {
     projectTitle: string;
     pptFileName?: string;
+    joinCode?: string;
     student?: {
       name: string;
       email?: string;
@@ -246,6 +247,29 @@ export function ReviewLobby({ review, onJoin, isJoining, error }: ReviewLobbyPro
                   </div>
                 )}
               </div>
+
+              {/* Join Code */}
+              {review.joinCode && (
+                <div className="mt-4 pt-4 border-t border-gray-700">
+                  <p className="text-sm text-gray-400 mb-2">Share this code with others to join:</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-center text-2xl font-mono font-bold text-green-400 bg-gray-900 py-2 px-4 rounded-lg">
+                      {review.joinCode}
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(review.joinCode || '');
+                      }}
+                      className="p-2 text-gray-400 hover:text-white transition"
+                      title="Copy code"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Tips */}

@@ -62,6 +62,10 @@ model ProjectReview {
     roomId    String @unique @map("room_id")
     studentId String @map("student_id")
 
+    // Multi-participant support
+    joinCode        String? @unique @map("join_code") // Format: XXX-XXX
+    maxParticipants Int     @default(6) @map("max_participants")
+
     // Project Info
     projectTitle       String  @map("project_title")
     projectDescription String? @map("project_description") @db.Text
@@ -84,11 +88,35 @@ model ProjectReview {
     createdAt DateTime            @default(now()) @map("created_at")
     updatedAt DateTime            @updatedAt @map("updated_at")
 
-    student   Student              @relation(fields: [studentId], references: [id])
-    report    ProjectReviewReport?
-    pptChunks PptChunk[]
+    student      Student              @relation(fields: [studentId], references: [id])
+    report       ProjectReviewReport?
+    pptChunks    PptChunk[]
+    participants ReviewParticipant[]
 
     @@map("project_reviews")
+}
+
+// ============================================
+// REVIEW PARTICIPANTS (Multi-participant support)
+// ============================================
+
+model ReviewParticipant {
+    id       String @id @default(uuid())
+    reviewId String @map("review_id")
+
+    // Participant info
+    name     String // Display name
+    identity String // LiveKit identity
+    isHost   Boolean @default(false) @map("is_host")
+
+    // Timing
+    joinedAt DateTime  @default(now()) @map("joined_at")
+    leftAt   DateTime? @map("left_at")
+
+    review ProjectReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+    @@unique([reviewId, identity])
+    @@map("review_participants")
 }
 
 // ============================================

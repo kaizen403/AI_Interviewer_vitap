@@ -30,6 +30,17 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const ALLOWED_EXTENSIONS = ['.ppt', '.pptx', '.pdf'];
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'ppt');
 
+// Generate join code in XXX-XXX format
+function generateJoinCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Avoid confusing chars: 0OI1
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+    if (i === 2) code += '-';
+  }
+  return code;
+}
+
 // Ensure upload directory exists
 fs.mkdir(UPLOAD_DIR, { recursive: true }).catch(console.error);
 
@@ -102,6 +113,8 @@ export async function getReviewByRoomId(req: Request, res: Response) {
       startedAt: review.startedAt,
       completedAt: review.completedAt,
       duration: review.duration,
+      joinCode: review.joinCode,
+      maxParticipants: review.maxParticipants,
       student: review.student ? {
         name: review.student.name,
         email: review.student.email,
@@ -201,6 +214,21 @@ export async function uploadPPT(req: Request, res: Response) {
       console.log('[PPT Upload] R2 not configured, using local storage');
     }
 
+    // Generate join code if not already set
+    let joinCode = review.joinCode;
+    if (!joinCode) {
+      joinCode = generateJoinCode();
+      let attempts = 0;
+      while (attempts < 10) {
+        const existing = await prisma.projectReview.findUnique({
+          where: { joinCode },
+        });
+        if (!existing) break;
+        joinCode = generateJoinCode();
+        attempts++;
+      }
+    }
+
     // Update the project review with file info and content
     console.log(`[PPT Upload] Saving pptFileUrl to DB: ${pptFileUrl}`);
     const updated = await prisma.projectReview.update({
@@ -211,10 +239,11 @@ export async function uploadPPT(req: Request, res: Response) {
         pptFileSize: file.size,
         pptUploadedAt: new Date(),
         pptContent,
+        joinCode, // Set join code
         status: 'processing', // Set to processing while we index
       },
     });
-    console.log(`[PPT Upload] DB updated, pptFileUrl from DB: ${updated.pptFileUrl}`);
+    console.log(`[PPT Upload] DB updated, pptFileUrl from DB: ${updated.pptFileUrl}, joinCode: ${updated.joinCode}`);
 
     // Index PPT content for RAG (async - don't wait)
     if (pptContent && pptContent.length > 50) {
@@ -310,7 +339,7 @@ export async function getProjectReviewToken(req: Request, res: Response) {
       await roomService.createRoom({
         name: roomId,
         emptyTimeout: 600, // 10 minutes
-        maxParticipants: 2,
+        maxParticipants: review.maxParticipants + 1, // +1 for agent
         metadata: JSON.stringify({
           type: 'project_review',
           agentType: 'project-review',
@@ -477,5 +506,206 @@ export async function getProjectReviewSummary(req: Request, res: Response) {
   } catch (error) {
     console.error('Get summary error:', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+// ============================================================================
+// MULTI-PARTICIPANT ENDPOINTS
+// ============================================================================
+
+/**
+ * Generate join code for a room
+ * POST /api/project-review/:roomId/join-code
+ */
+export async function generateRoomJoinCode(req: Request, res: Response) {
+  try {
+    const { roomId } = req.params;
+
+    const review = await prisma.projectReview.findUnique({
+      where: { roomId },
+    });
+
+    if (!review) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    // Generate unique join code
+    let joinCode = generateJoinCode();
+    let attempts = 0;
+    while (attempts < 10) {
+      const existing = await prisma.projectReview.findUnique({
+        where: { joinCode },
+      });
+      if (!existing) break;
+      joinCode = generateJoinCode();
+      attempts++;
+    }
+
+    // Update review with join code
+    const updated = await prisma.projectReview.update({
+      where: { roomId },
+      data: { joinCode },
+    });
+
+    return res.json({ joinCode: updated.joinCode });
+  } catch (error) {
+    console.error('Generate join code error:', error);
+    return res.status(500).json({ error: 'Failed to generate join code' });
+  }
+}
+
+/**
+ * Get room info by join code
+ * GET /api/project-review/join/:code
+ */
+export async function getRoomByJoinCode(req: Request, res: Response) {
+  try {
+    const { code } = req.params;
+    const joinCode = code.toUpperCase();
+
+    const review = await prisma.projectReview.findUnique({
+      where: { joinCode },
+      include: {
+        student: true,
+        participants: {
+          where: { leftAt: null },
+        },
+      },
+    });
+
+    if (!review) {
+      return res.status(404).json({ error: 'Invalid join code' });
+    }
+
+    // Check if room is full
+    const activeParticipants = review.participants.length;
+    if (activeParticipants >= review.maxParticipants) {
+      return res.status(400).json({ error: 'Room is full' });
+    }
+
+    return res.json({
+      roomId: review.roomId,
+      projectTitle: review.projectTitle,
+      projectDescription: review.projectDescription,
+      hostName: review.student.name,
+      currentParticipants: activeParticipants,
+      maxParticipants: review.maxParticipants,
+      status: review.status,
+    });
+  } catch (error) {
+    console.error('Get room by code error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+/**
+ * Join room as participant
+ * POST /api/project-review/join/:code
+ */
+export async function joinRoomAsParticipant(req: Request, res: Response) {
+  try {
+    const { code } = req.params;
+    const { name } = req.body;
+    const joinCode = code.toUpperCase();
+
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({ error: 'Name is required (min 2 characters)' });
+    }
+
+    const review = await prisma.projectReview.findUnique({
+      where: { joinCode },
+      include: {
+        student: true,
+        participants: {
+          where: { leftAt: null },
+        },
+      },
+    });
+
+    if (!review) {
+      return res.status(404).json({ error: 'Invalid join code' });
+    }
+
+    // Check if room is full
+    if (review.participants.length >= review.maxParticipants) {
+      return res.status(400).json({ error: 'Room is full' });
+    }
+
+    // Generate participant identity
+    const identity = `participant-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
+    // Create or update participant record
+    const participant = await prisma.reviewParticipant.upsert({
+      where: {
+        reviewId_identity: {
+          reviewId: review.id,
+          identity,
+        },
+      },
+      create: {
+        reviewId: review.id,
+        name: name.trim(),
+        identity,
+        isHost: false,
+      },
+      update: {
+        name: name.trim(),
+        leftAt: null,
+        joinedAt: new Date(),
+      },
+    });
+
+    // Create or get the room (needed for token)
+    try {
+      await roomService.createRoom({
+        name: review.roomId,
+        emptyTimeout: 600,
+        maxParticipants: review.maxParticipants + 1, // +1 for agent
+        metadata: JSON.stringify({
+          type: 'project_review',
+          agentType: 'project-review',
+          reviewId: review.id,
+          projectTitle: review.projectTitle,
+          projectDescription: review.projectDescription,
+          pptUrl: review.pptFileUrl,
+          pptContent: review.pptContent,
+          studentId: review.studentId,
+          studentName: review.student?.name,
+        }),
+      });
+    } catch (error: any) {
+      if (!error.message?.includes('already exists')) {
+        throw error;
+      }
+    }
+
+    // Generate access token
+    const token = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
+      identity,
+      name: name.trim(),
+      ttl: 3600,
+    });
+
+    token.addGrant({
+      room: review.roomId,
+      roomJoin: true,
+      canPublish: true,
+      canSubscribe: true,
+      canPublishData: true,
+    });
+
+    return res.json({
+      token: await token.toJwt(),
+      roomId: review.roomId,
+      participantId: participant.id,
+      identity,
+      review: {
+        projectTitle: review.projectTitle,
+        hostName: review.student.name,
+      },
+    });
+  } catch (error) {
+    console.error('Join room error:', error);
+    return res.status(500).json({ error: 'Failed to join room' });
   }
 }
