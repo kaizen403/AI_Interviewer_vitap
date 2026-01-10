@@ -6,6 +6,8 @@ echo "🚀 Starting Capstone Reviewer..."
 # Start backend API in background
 echo "📦 Starting Backend API on port 10000..."
 cd /app/apps/backend
+echo "Applying database migrations..."
+npx prisma migrate deploy
 node dist/index.js &
 BACKEND_PID=$!
 
