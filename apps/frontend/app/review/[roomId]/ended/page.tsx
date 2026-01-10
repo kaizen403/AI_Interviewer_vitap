@@ -171,7 +171,7 @@ export default function ReviewEndedPage() {
         {/* Actions */}
         <div className="flex gap-4 justify-center">
           <Link href="/dashboard">
-            <Button variant="outline" className="text-white border-gray-600 hover:bg-gray-700">
+            <Button variant="outline" className="bg-gray-800 text-white border-gray-600 hover:bg-gray-700">
               Back to Dashboard
             </Button>
           </Link>

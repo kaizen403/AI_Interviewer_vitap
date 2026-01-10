@@ -296,15 +296,8 @@ export abstract class BaseVoiceAgent<
 
       this.logger.info("🎤 Agent starting", { roomName: ctx.room.name });
 
-      // Parse room metadata
-      console.log(`[${this.config.name}] 📝 Parsing room metadata...`);
-      const rawMetadata = ctx.room.metadata || "{}";
-      console.log(`[${this.config.name}] Raw metadata: ${rawMetadata}`);
-      const metadata = this.parseMetadata(rawMetadata);
-      console.log(
-        `[${this.config.name}] ✅ Parsed metadata:`,
-        JSON.stringify(metadata, null, 2),
-      );
+      // Note: We'll parse metadata AFTER connecting to the room (it's empty before connect)
+      console.log(`[${this.config.name}] 📝 Initial metadata check (pre-connect)...`);
 
       // Get preloaded VAD
       console.log(`[${this.config.name}] 🎙️ Getting preloaded VAD...`);
@@ -324,42 +317,7 @@ export abstract class BaseVoiceAgent<
       this.graph = graphBuilder.compile ? graphBuilder.compile() : graphBuilder;
       console.log(`[${this.config.name}] ✅ Graph compiled`);
 
-      // Create initial state
-      const sessionId = `session_${Date.now()}`;
-      console.log(
-        `[${this.config.name}] 📋 Creating initial state for session: ${sessionId}`,
-      );
-      this.currentState = this.createInitialState(
-        sessionId,
-        ctx.room.name ?? "",
-        metadata,
-      );
-      console.log(`[${this.config.name}] ✅ Initial state created`);
-
-      // Update logger with session context
-      this.logger = createAgentLogger(this.config.name, sessionId);
-
-      // Emit session started event
-      console.log(`[${this.config.name}] 📡 Emitting SESSION_STARTED event...`);
-      await this.onEvent({
-        type: AgentEventType.SESSION_STARTED,
-        timestamp: new Date(),
-        sessionId,
-        data: { roomName: ctx.room.name, metadata },
-      });
-
-      // Create voice agent with system prompt
-      console.log(
-        `[${this.config.name}] 🤖 Creating voice.Agent with system prompt...`,
-      );
-      const systemPrompt = this.getSystemPrompt(metadata);
-      console.log(
-        `[${this.config.name}] System prompt preview: ${systemPrompt.substring(0, 100)}...`,
-      );
-      const agent = new voice.Agent({
-        instructions: systemPrompt,
-      });
-      console.log(`[${this.config.name}] ✅ voice.Agent created`);
+      // Note: sessionId, metadata, and voice.Agent will be created after room connection
 
       // Create voice pipeline components
       console.log(
@@ -438,11 +396,57 @@ export abstract class BaseVoiceAgent<
       );
       this.logger.info("✅ Connected to room");
 
+      // NOW parse room metadata (after connection, it's available)
+      console.log(`[${this.config.name}] 📝 Parsing room metadata (post-connect)...`);
+      const rawMetadata = ctx.room.metadata || "{}";
+      console.log(`[${this.config.name}] Raw metadata: ${rawMetadata.substring(0, 200)}...`);
+      const metadata = this.parseMetadata(rawMetadata);
+      console.log(
+        `[${this.config.name}] ✅ Parsed metadata:`,
+        JSON.stringify(metadata, null, 2),
+      );
+
+      // Create initial state with metadata from room
+      const sessionId = `session_${Date.now()}`;
+      console.log(
+        `[${this.config.name}] 📋 Creating initial state for session: ${sessionId}`,
+      );
+      this.currentState = this.createInitialState(
+        sessionId,
+        ctx.room.name ?? "",
+        metadata,
+      );
+      console.log(`[${this.config.name}] ✅ Initial state created`);
+      console.log(`[${this.config.name}]   - pptContent available: ${!!metadata.pptContent}`);
+      console.log(`[${this.config.name}]   - pptUrl: ${metadata.pptUrl || 'none'}`);
+
       // Set up data message listener for file uploads and other events
       console.log(
         `[${this.config.name}] 📡 Setting up data message listener...`,
       );
       this.setupDataMessageListener(ctx);
+
+      // Emit session started event
+      console.log(`[${this.config.name}] 📡 Emitting SESSION_STARTED event...`);
+      await this.onEvent({
+        type: AgentEventType.SESSION_STARTED,
+        timestamp: new Date(),
+        sessionId,
+        data: { roomName: ctx.room.name, metadata },
+      });
+
+      // Create voice agent with system prompt
+      console.log(
+        `[${this.config.name}] 🤖 Creating voice.Agent with system prompt...`,
+      );
+      const systemPrompt = this.getSystemPrompt(metadata);
+      console.log(
+        `[${this.config.name}] System prompt preview: ${systemPrompt.substring(0, 100)}...`,
+      );
+      const agent = new voice.Agent({
+        instructions: systemPrompt,
+      });
+      console.log(`[${this.config.name}] ✅ voice.Agent created`);
 
       // Start the agent session
       console.log(`[${this.config.name}] 🚀 Starting agent session...`);
