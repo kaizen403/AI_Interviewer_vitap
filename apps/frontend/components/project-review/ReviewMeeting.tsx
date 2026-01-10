@@ -23,7 +23,7 @@ import { Track, RoomEvent, ConnectionState } from 'livekit-client';
 import { Button } from '@/components/ui/button';
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff,
-  Monitor, MonitorOff, Loader2, Users, FilePresentation, ExternalLink
+  Monitor, MonitorOff, Loader2, Users, Presentation, ExternalLink
 } from 'lucide-react';
 import { getBackendUrl } from '@/lib/api-config';
 
@@ -242,7 +242,7 @@ export function ReviewMeeting({ review, onEnd }: ReviewMeetingProps) {
             {/* PPT Header */}
             <div className="bg-gray-700/50 px-4 py-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FilePresentation className="w-4 h-4 text-blue-400" />
+                <Presentation className="w-4 h-4 text-blue-400" />
                 <span className="text-sm text-white truncate max-w-[300px]">
                   {review.pptFileName || 'Presentation'}
                 </span>
@@ -271,7 +271,7 @@ export function ReviewMeeting({ review, onEnd }: ReviewMeetingProps) {
                 />
               ) : (
                 <div className="text-center p-8">
-                  <FilePresentation className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <Presentation className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                   <p className="text-gray-400">No presentation uploaded</p>
                 </div>
               )}

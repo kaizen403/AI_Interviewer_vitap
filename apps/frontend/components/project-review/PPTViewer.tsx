@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, FilePresentation, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Presentation, ExternalLink } from 'lucide-react';
 import { getBackendUrl } from '@/lib/api-config';
 
 interface PPTViewerProps {
@@ -38,7 +38,7 @@ export function PPTViewer({ pptFileUrl, pptFileName, className = '' }: PPTViewer
         return (
             <div className={`bg-gray-800 rounded-xl flex items-center justify-center ${className}`}>
                 <div className="text-center p-8">
-                    <FilePresentation className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <Presentation className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                     <p className="text-gray-400">No presentation uploaded</p>
                 </div>
             </div>
@@ -50,7 +50,7 @@ export function PPTViewer({ pptFileUrl, pptFileName, className = '' }: PPTViewer
             {/* Header */}
             <div className="bg-gray-700/50 px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <FilePresentation className="w-4 h-4 text-blue-400" />
+                    <Presentation className="w-4 h-4 text-blue-400" />
                     <span className="text-sm text-white truncate max-w-[200px]">
                         {pptFileName || 'Presentation'}
                     </span>
@@ -81,7 +81,7 @@ export function PPTViewer({ pptFileUrl, pptFileName, className = '' }: PPTViewer
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-center p-8">
-                            <FilePresentation className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                            <Presentation className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                             <p className="text-gray-400 mb-2">Unable to preview presentation</p>
                             <p className="text-gray-500 text-sm mb-4">
                                 The file may need to be publicly accessible for preview
