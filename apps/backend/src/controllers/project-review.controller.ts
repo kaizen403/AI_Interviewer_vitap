@@ -144,19 +144,38 @@ export async function uploadPPT(req: Request, res: Response) {
       const officeparser = await import('officeparser');
       const filePath = path.join(UPLOAD_DIR, file.filename);
 
-      // Parse the PPT/PPTX file - returns string when called with just path
+      // Parse the PPT/PPTX file
       const parsed = await officeparser.parseOffice(filePath);
-      pptContent = typeof parsed === 'string' ? parsed : String(parsed || '');
+
+      // Handle different return types from officeparser
+      if (typeof parsed === 'string') {
+        pptContent = parsed;
+      } else if (parsed && typeof parsed === 'object') {
+        // It might return an object with text property
+        if ('text' in parsed) {
+          pptContent = String(parsed.text || '');
+        } else {
+          // Try to stringify it
+          pptContent = JSON.stringify(parsed);
+        }
+      } else {
+        pptContent = String(parsed || '');
+      }
 
       // Clean up the content
-      if (pptContent) {
+      if (pptContent && pptContent !== '[object Object]') {
         pptContent = pptContent
           .split('\n')
           .filter((line: string) => line.trim())
           .join('\n');
+      } else {
+        pptContent = '';
       }
 
       console.log(`[PPT Upload] Extracted ${pptContent.length} chars from PPT`);
+      if (pptContent.length > 0) {
+        console.log(`[PPT Upload] First 200 chars: ${pptContent.substring(0, 200)}`);
+      }
     } catch (e) {
       console.warn('[PPT Upload] Could not extract PPT content:', e);
       pptContent = `File: ${file.originalname}\nSize: ${file.size} bytes\n(Content extraction failed)`;
