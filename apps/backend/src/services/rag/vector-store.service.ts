@@ -116,7 +116,15 @@ export async function searchSimilarChunks(
     LIMIT ${limit}
   `;
 
-    return results.map(r => ({
+    return results.map((r: {
+        id: string;
+        review_id: string;
+        slide_number: number | null;
+        slide_title: string | null;
+        content: string;
+        chunk_index: number;
+        similarity: number;
+    }) => ({
         id: r.id,
         reviewId: r.review_id,
         slideNumber: r.slide_number,

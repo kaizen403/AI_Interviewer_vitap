@@ -12,7 +12,7 @@
         "dev:frontend": "pnpm --filter frontend dev",
         "build": "pnpm -r run build",
         "lint": "pnpm -r run lint",
-        "heroku-postbuild": "cd apps/backend && pnpm prisma generate && pnpm build && cd ../frontend && pnpm build",
+        "heroku-postbuild": "cd apps/backend && pnpm build && cd ../frontend && pnpm build",
         "heroku:start": "cd apps/backend && node dist/agent/voice-agent-router.js download-files && ./../../start.sh"
     },
     "packageManager": "pnpm@10.16.1"
