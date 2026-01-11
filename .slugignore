@@ -51,8 +51,5 @@ apps/frontend/.next/cache/
 .livekit/
 lk_models/
 
-# Package manager files not needed at runtime
-pnpm-lock.yaml
-
 # Prisma - keep only what's needed
 apps/backend/prisma.config.ts
