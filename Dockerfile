@@ -49,8 +49,7 @@ WORKDIR /app/apps/backend
 RUN pnpm prisma generate
 RUN pnpm build
 
-# Download voice agent models
-RUN pnpm agent:download
+# Note: agent:download runs at runtime in start.sh (needs env vars)
 
 # ============================================
 # Frontend Build Stage

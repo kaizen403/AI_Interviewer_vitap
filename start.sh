@@ -24,6 +24,10 @@ BACKEND_PID=$!
 # Wait for backend to start
 sleep 3
 
+# Download voice agent model files (needs env vars, so run at runtime)
+echo "📥 Downloading voice agent models..."
+node dist/agent/voice-agent-router.js download-files || echo "⚠️ Model download failed, continuing..."
+
 # Start voice agent in background
 echo "🎤 Starting Voice Agent..."
 node dist/agent/voice-agent-router.js start &
