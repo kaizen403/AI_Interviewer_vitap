@@ -1,4 +1,4 @@
-import { config } from '../config';
+import { config } from '../config/index.js';
 
 /**
  * Proctoring ML Service Client
@@ -83,7 +83,7 @@ export async function stopProctoring(roomName: string): Promise<JoinResponse> {
 export async function getProctoringStatus(): Promise<StatusResponse> {
   try {
     const response = await fetch(`${ML_SERVICE_URL}/status`);
-    
+
     if (!response.ok) {
       throw new Error(`ML service error: ${response.statusText}`);
     }

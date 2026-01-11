@@ -1,0 +1,50 @@
+# Dependencies - these get installed fresh in Docker
+node_modules
+**/node_modules
+
+# Build outputs
+.next
+**/dist
+**/.next
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Environment files (secrets)
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+__tests__
+coverage
+
+# Development files
+.opencode
+*.md
+LICENSE
+docker-compose.yml
+render.yaml
+
+# Temporary files
+tmp
+temp
+*.tmp

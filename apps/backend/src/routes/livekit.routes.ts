@@ -9,8 +9,8 @@
  */
 
 import { Router, type Router as RouterType } from 'express';
-import livekitController from '../controllers/livekit.controller';
-import { tokenLimiter, auditLog } from '../middleware/security';
+import livekitController from '../controllers/livekit.controller.js';
+import { tokenLimiter, auditLog } from '../middleware/security.js';
 
 const router: RouterType = Router();
 
@@ -19,14 +19,14 @@ const router: RouterType = Router();
  * This should only be called from other backend services, not directly from clients
  * For client token generation, use /api/interview/:id/token
  */
-router.post('/token/internal', 
+router.post('/token/internal',
   tokenLimiter,
   auditLog('internal_livekit_token'),
   (req, res, next) => {
     // Only allow internal requests (check for internal API key)
     const internalKey = req.headers['x-internal-api-key'];
     const expectedKey = process.env.INTERNAL_API_KEY;
-    
+
     if (!expectedKey) {
       // If no internal key configured, deny all requests in production
       if (process.env.NODE_ENV === 'production') {
@@ -35,11 +35,11 @@ router.post('/token/internal',
       // In development, allow for testing
       return next();
     }
-    
+
     if (internalKey !== expectedKey) {
       return res.status(403).json({ error: 'Invalid internal API key' });
     }
-    
+
     next();
   },
   livekitController.generateToken

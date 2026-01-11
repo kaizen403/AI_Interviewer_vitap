@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  // Standalone mode for minimal Docker images
+  output: 'standalone',
   // Configure Turbopack for monorepo/Docker builds
   turbopack: {
     root: path.resolve(__dirname, '..', '..'),  // Absolute path to workspace root

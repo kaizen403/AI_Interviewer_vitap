@@ -1,1 +1,1 @@
-export * from './livekit.types';
+export * from './livekit.types.js';

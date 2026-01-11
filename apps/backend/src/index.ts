@@ -4,10 +4,10 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import { testConnection } from './db/index.js';
-import livekitRoutes from './routes/livekit.routes';
-import projectReviewRoutes from './routes/project-review.routes';
+import livekitRoutes from './routes/livekit.routes.js';
+import projectReviewRoutes from './routes/project-review.routes.js';
 import studentRoutes from './routes/student.routes.js';
-import { apiLimiter } from './middleware/security';
+import { apiLimiter } from './middleware/security.js';
 
 const app: Application = express();
 const PORT = process.env.PORT || 8080;

@@ -1,6 +1,6 @@
 
 import { Request, Response } from 'express';
-import livekitService from '../services/livekit.service';
+import livekitService from '../services/livekit.service.js';
 
 class LivekitController {
   async generateToken(req: Request, res: Response): Promise<void> {

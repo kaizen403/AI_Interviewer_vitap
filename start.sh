@@ -1,5 +1,6 @@
 #!/bin/bash
 # Start script for combined service (Heroku compatible)
+# Uses Next.js standalone output
 
 echo "🚀 Starting Capstone Reviewer..."
 
@@ -14,7 +15,7 @@ echo "🌐 Frontend will run on port $FRONTEND_PORT (Heroku's $PORT)"
 # Apply database migrations
 echo "📊 Applying database migrations..."
 cd /app/apps/backend
-npx prisma migrate deploy
+npx prisma migrate deploy || echo "⚠️ Migration failed, continuing..."
 
 # Start backend API in background
 echo "📦 Starting Backend API..."
@@ -33,10 +34,19 @@ echo "🎤 Starting Voice Agent..."
 node dist/agent/voice-agent-router.js start &
 VOICE_PID=$!
 
-# Start frontend on Heroku's PORT
+# Start frontend using standalone server
 echo "🌐 Starting Frontend on port $FRONTEND_PORT..."
+cd /app
+
+# Next.js standalone server - set env vars
+export HOSTNAME="0.0.0.0"
+export PORT=$FRONTEND_PORT
+export INTERNAL_BACKEND_URL="http://localhost:$BACKEND_PORT"
+
+# Run the standalone server
+# In standalone mode with monorepo, server.js is at apps/frontend/server.js
 cd /app/apps/frontend
-node_modules/.bin/next start -p $FRONTEND_PORT &
+node server.js &
 FRONTEND_PID=$!
 
 echo "✅ All services started!"
