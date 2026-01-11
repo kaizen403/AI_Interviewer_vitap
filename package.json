@@ -3,12 +3,16 @@
     "version": "1.0.0",
     "private": true,
     "description": "Capstone Project Reviewer - AI-powered project presentation review",
+    "engines": {
+        "node": "22.x"
+    },
     "scripts": {
         "dev": "pnpm -r --parallel run dev",
         "dev:backend": "pnpm --filter backend dev",
         "dev:frontend": "pnpm --filter frontend dev",
         "build": "pnpm -r run build",
-        "lint": "pnpm -r run lint"
+        "lint": "pnpm -r run lint",
+        "heroku-postbuild": "pnpm install && pnpm --filter backend run build && pnpm --filter backend run agent:download && pnpm --filter frontend run build"
     },
     "packageManager": "pnpm@10.16.1"
 }
