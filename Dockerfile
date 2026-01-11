@@ -83,6 +83,9 @@ WORKDIR /app
 # Copy package files
 COPY package.json pnpm-workspace.yaml ./
 
+# Copy root node_modules (has shared deps like dotenv)
+COPY --from=deps /app/node_modules ./node_modules
+
 # Copy backend build
 COPY --from=backend-builder /app/apps/backend/dist ./apps/backend/dist
 COPY --from=backend-builder /app/apps/backend/node_modules ./apps/backend/node_modules
