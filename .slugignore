@@ -1,25 +1,58 @@
-# Ignore these files/folders during slug compilation
-# This reduces the deployed app size
+# Heroku slugignore - reduce deployment size
+# These are excluded AFTER build completes
 
-# Dev files
+# Documentation
 *.md
-*.test.ts
-*.spec.ts
-tests/
-__tests__/
+README*
+LICENSE*
+CHANGELOG*
+
+# Version control
 .git/
 .github/
+.gitignore
 
-# Build artifacts we don't need at runtime
+# Test files
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+tests/
+__tests__/
+coverage/
+.nyc_output/
+
+# TypeScript source (we have compiled JS)
 apps/backend/src/
 apps/frontend/src/
 
-# Prisma schema (client already generated)
+# Prisma schema files (client already generated)
 apps/backend/prisma/migrations/
+apps/backend/prisma/*.md
 
-# Large dev dependencies
-node_modules/.cache/
+# Config files not needed at runtime
+*.config.mjs
+turbo.json
+biome.json
+.eslintrc*
+.prettierrc*
+.editorconfig
 
-# Voice agent models (will be downloaded at runtime)
+# Development caches and temp files
+.cache/
+*.log
+*.tmp
+.DS_Store
+
+# Next.js build cache (standalone already has what we need)
+apps/frontend/.next/cache/
+
+# Voice agent model caches (downloaded at runtime)
 .livekit/
 lk_models/
+
+# Package manager files not needed at runtime
+pnpm-lock.yaml
+
+# Prisma - keep only what's needed
+apps/backend/prisma.config.ts
