@@ -13,9 +13,6 @@ __tests__/
 # Build artifacts we don't need at runtime
 apps/backend/src/
 apps/frontend/src/
-*.ts
-!*.d.ts
-tsconfig*.json
 
 # Prisma schema (client already generated)
 apps/backend/prisma/migrations/
