@@ -328,6 +328,21 @@ Please contact support for assistance.`,
     };
   }
 
+  /**
+   * Safely call session.say() - catches errors if session is closed
+   */
+  private safeSay(message: string): void {
+    if (!this.session) {
+      console.log('[ProjectReview] Session not available, skipping say:', message.substring(0, 50) + '...');
+      return;
+    }
+    try {
+      this.safeSay(message);
+    } catch (error: any) {
+      console.log('[ProjectReview] Failed to say (session may be closed):', error.message);
+    }
+  }
+
   // =========================================================================
   // Data Message Handling
   // =========================================================================
@@ -367,9 +382,7 @@ Please contact support for assistance.`,
     console.log(`[ProjectReview] 📤 File upload received: ${fileUrl}`);
 
     // Notify user we're processing
-    if (this.session) {
-      this.session.say("I've received your presentation file. Let me analyze the content and prepare some questions for you. This will take a moment.");
-    }
+    this.safeSay("I've received your presentation file. Let me analyze the content and prepare some questions for you. This will take a moment.");
 
     try {
       // Fetch RAG context from vector store
@@ -407,27 +420,24 @@ Please contact support for assistance.`,
           (result.questionsPool?.medium?.length || 0) +
           (result.questionsPool?.hard?.length || 0);
 
-        if (totalQuestions > 0 && this.session) {
+        if (totalQuestions > 0) {
           const firstQuestion = result.questionsPool?.easy?.[0]?.question ||
             result.questionsPool?.medium?.[0]?.question ||
             'Can you give me an overview of your project?';
 
-          this.session.say(`I've analyzed your presentation and prepared ${totalQuestions} questions for you. Let's begin with an easy one: ${firstQuestion}`);
-        } else if (this.session) {
+          this.safeSay(`I've analyzed your presentation and prepared ${totalQuestions} questions for you. Let's begin with an easy one: ${firstQuestion}`);
+        } else {
           // Use RAG context to generate a question
           if (pptContext) {
-            this.session.say("I've reviewed your presentation. Based on what I see in your slides, can you start by explaining the main problem your project aims to solve?");
+            this.safeSay("I've reviewed your presentation. Based on what I see in your slides, can you start by explaining the main problem your project aims to solve?");
           } else {
-            this.session.say("I've reviewed your presentation. Let's start with a simple question: Can you give me an overview of your project and its main objectives?");
+            this.safeSay("I've reviewed your presentation. Let's start with a simple question: Can you give me an overview of your project and its main objectives?");
           }
         }
       }
     } catch (error) {
       console.error('[ProjectReview] ❌ Workflow error:', error);
-
-      if (this.session) {
-        this.session.say("I encountered an issue analyzing your presentation, but let's proceed. Can you give me an overview of your project?");
-      }
+      this.safeSay("I encountered an issue analyzing your presentation, but let's proceed. Can you give me an overview of your project?");
     }
   }
 }
