@@ -13,7 +13,7 @@
     "agent:voice": "tsx src/agent/voice-agent-router.ts start",
     "agent:prod": "node dist/agent/index.js",
     "agent:download": "tsx src/agent/voice-agent-router.ts download-files",
-    "build": "tsc && pnpm prisma generate",
+    "build": "tsc -p tsconfig.build.json && pnpm prisma generate",
     "start": "node dist/index.js",
     "start:voice": "node dist/agent/voice-agent-router.js start",
     "seed": "tsx scripts/seed-postgres.ts",
