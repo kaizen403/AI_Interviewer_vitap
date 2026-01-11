@@ -1,1 +1,1 @@
-web: pnpm heroku:start
+web: pnpm heroku:start:backend

@@ -12,8 +12,9 @@
         "dev:frontend": "pnpm --filter frontend dev",
         "build": "pnpm -r run build",
         "lint": "pnpm -r run lint",
-        "heroku-postbuild": "cd apps/backend && pnpm build && cd ../frontend && pnpm build",
-        "heroku:start": "cd apps/backend && node dist/agent/voice-agent-router.js download-files && ./../../start.sh"
+        "heroku-postbuild": "if [ \"$APP_TYPE\" = 'frontend' ]; then cd apps/frontend && pnpm build; else cd apps/backend && pnpm build; fi",
+        "heroku:start:backend": "cd apps/backend && node dist/agent/voice-agent-router.js download-files && node dist/index.js & node dist/agent/voice-agent-router.js start",
+        "heroku:start:frontend": "cd apps/frontend && node server.js"
     },
     "packageManager": "pnpm@10.16.1"
 }
