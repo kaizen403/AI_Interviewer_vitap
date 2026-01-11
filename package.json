@@ -12,7 +12,7 @@
         "dev:frontend": "pnpm --filter frontend dev",
         "build": "pnpm -r run build",
         "lint": "pnpm -r run lint",
-        "heroku-postbuild": "pnpm install && pnpm --filter backend run build && pnpm --filter backend run agent:download && pnpm --filter frontend run build"
+        "heroku-postbuild": "cd apps/backend && pnpm prisma generate && pnpm tsc && pnpm agent:download && cd ../frontend && pnpm build"
     },
     "packageManager": "pnpm@10.16.1"
 }
