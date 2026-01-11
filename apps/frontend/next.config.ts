@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   // Configure Turbopack for monorepo/Docker builds
   turbopack: {
-    root: '..',  // Point to workspace root (apps/frontend -> apps)
+    root: path.resolve(__dirname, '..', '..'),  // Absolute path to workspace root
   },
   // Proxy API requests to internal backend
   async rewrites() {
