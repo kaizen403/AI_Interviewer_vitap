@@ -50,7 +50,7 @@ const DEFAULT_VOICE_PIPELINE_CONFIG = {
     speed: 1.0,
   },
   llm: {
-    model: process.env.LLM_MODEL || 'gpt-4o-mini',
+    model: process.env.LLM_MODEL || 'accounts/fireworks/models/llama-v3p3-70b-instruct',
     temperature: parseFloat(process.env.LLM_TEMPERATURE || '0.7'),
     maxTokens: parseInt(process.env.LLM_MAX_TOKENS || '1024', 10),
   },

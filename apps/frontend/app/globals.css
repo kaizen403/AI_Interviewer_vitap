@@ -1,54 +1,49 @@
 @import "tailwindcss";
 
 :root {
-  /* Background colors - warm off-white palette */
-  --background: #faf9f7;
-  --background-secondary: #f5f4f1;
-  --background-muted: #efeee9;
-  
-  /* Text colors - warm charcoal tones */
-  --foreground: #1c1c1a;
-  --text-primary: #2d2d2a;
-  --text-secondary: #5c5c57;
-  --text-muted: #7a7a74;
-  --text-subtle: #a3a39c;
-  
-  /* Border colors - warm neutrals */
-  --border: #e0dfd8;
-  --border-muted: #d4d3cb;
-  
-  /* Primary brand colors - charcoal gray */
-  --primary: #4a4a48;
-  --primary-hover: #3a3a38;
-  --primary-light: #f0f0ef;
-  --primary-dark: #2a2a28;
-  
-  /* Success colors - muted green */
-  --success: #4a9d6b;
-  --success-hover: #3d8459;
-  --success-light: #e6f4eb;
-  
-  /* Destructive/Error colors - softer red */
+  /* Warm ink — walnut black, not cool Tailwind gray */
+  --background: #161310;
+  --background-secondary: #211c18;
+  --background-muted: #2c261f;
+
+  /* Paper-toned text */
+  --foreground: #f3eee6;
+  --text-primary: #f3eee6;
+  --text-secondary: #c4bbb0;
+  --text-muted: #9a9085;
+  --text-subtle: #746b61;
+
+  --border: #3a332c;
+  --border-muted: #4a4239;
+
+  /* Terracotta accent */
+  --primary: #c45e38;
+  --primary-hover: #a34c2d;
+  --primary-light: #3a241c;
+  --primary-dark: #7c3a22;
+
+  --success: #6a9a6b;
+  --success-hover: #588159;
+  --success-light: #1e2c1f;
+
   --destructive: #c45a5a;
   --destructive-hover: #a84848;
-  --destructive-light: #fae8e8;
-  
-  /* Warning colors - warm amber */
+  --destructive-light: #3a1f1f;
+
   --warning: #d4943a;
   --warning-hover: #b87d2e;
-  --warning-light: #fdf4e6;
-  
-  /* Neutral warm gray scale */
-  --gray-50: #faf9f7;
-  --gray-100: #f5f4f1;
-  --gray-200: #e8e7e2;
-  --gray-300: #d4d3cb;
-  --gray-400: #a3a39c;
-  --gray-500: #7a7a74;
-  --gray-600: #5c5c57;
-  --gray-700: #3d3d3a;
-  --gray-800: #2d2d2a;
-  --gray-900: #1c1c1a;
+  --warning-light: #3a2c14;
+
+  --gray-50: #f3eee6;
+  --gray-100: #e8e1d6;
+  --gray-200: #cfc6b8;
+  --gray-300: #a89f93;
+  --gray-400: #8a8176;
+  --gray-500: #6e665c;
+  --gray-600: #4d453c;
+  --gray-700: #322c26;
+  --gray-800: #211c18;
+  --gray-900: #161310;
 }
 
 @theme inline {
@@ -65,6 +60,7 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
   --color-success: var(--success);
   --color-success-hover: var(--success-hover);
   --color-success-light: var(--success-light);
@@ -74,24 +70,25 @@
   --color-warning: var(--warning);
   --color-warning-hover: var(--warning-hover);
   --color-warning-light: var(--warning-light);
+
+  /* Remap default Tailwind scales so existing pages pick up the new tone */
+  --color-gray-50: var(--gray-50);
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
+  --color-gray-500: var(--gray-500);
+  --color-gray-600: var(--gray-600);
+  --color-gray-700: var(--gray-700);
+  --color-gray-800: var(--gray-800);
+  --color-gray-900: var(--gray-900);
+  --color-blue-400: #e09a78;
+  --color-blue-500: #d47a52;
+  --color-blue-600: #c45e38;
+  --color-blue-700: #a34c2d;
+
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Keep same off-white theme for consistency */
-    --background: #faf9f7;
-    --background-secondary: #f5f4f1;
-    --background-muted: #efeee9;
-    --foreground: #1c1c1a;
-    --text-primary: #2d2d2a;
-    --text-secondary: #5c5c57;
-    --text-muted: #7a7a74;
-    --text-subtle: #a3a39c;
-    --border: #e0dfd8;
-    --border-muted: #d4d3cb;
-  }
 }
 
 body {

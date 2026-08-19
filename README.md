@@ -17,7 +17,7 @@ AI-powered capstone project presentation review system.
 │                                                                             │
 │   REST API                           Voice Agent (LiveKit)                  │
 │   ├── /api/students                  ├── Deepgram STT                       │
-│   ├── /api/project-review            ├── OpenAI GPT-4o (LangGraph)          │
+│   ├── /api/project-review            ├── Fireworks LLM (LangGraph)          │
 │   └── /api/livekit                   └── Cartesia TTS                       │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
@@ -42,8 +42,8 @@ AI-powered capstone project presentation review system.
 
 ### Prerequisites
 
-- Node.js 20+
-- pnpm
+- Node.js 22.x (Prisma does not support Node 26)
+- pnpm 10
 - Docker
 
 ### Setup
@@ -52,15 +52,18 @@ AI-powered capstone project presentation review system.
 # Clone and install
 git clone <repo>
 cd capstone_reviewer_v2
+# If `node -v` is 26+, use Node 22 first:
+#   export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
 pnpm install
 
-# Start PostgreSQL
+# Start PostgreSQL (pgvector), LiveKit, and Redis
 docker compose up -d
 
 # Setup backend
 cd apps/backend
 cp .env.example .env
-# Fill in API keys (OpenAI, Deepgram, Cartesia, LiveKit)
+# Fill in API keys (Fireworks, Deepgram, Cartesia)
+# Frontend: cp apps/frontend/.env.example apps/frontend/.env.local
 pnpm prisma migrate dev
 pnpm prisma generate
 pnpm agent:download
@@ -81,7 +84,7 @@ Backend: http://localhost:3040
 | LIVEKIT_API_KEY | LiveKit API key |
 | LIVEKIT_API_SECRET | LiveKit API secret |
 | LIVEKIT_URL | LiveKit WebSocket URL |
-| OPENAI_API_KEY | OpenAI API key |
+| FIREWORKS_API_KEY | Fireworks API key |
 | DEEPGRAM_API_KEY | Deepgram API key |
 | CARTESIA_API_KEY | Cartesia API key |
 | R2_ACCESS_KEY_ID | Cloudflare R2 access key |

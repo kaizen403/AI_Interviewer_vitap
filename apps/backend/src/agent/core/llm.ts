@@ -6,6 +6,11 @@
 import { ChatOpenAI } from '@langchain/openai';
 import { z } from 'zod';
 import type { LLMConfig } from './types.js';
+import {
+  FIREWORKS_CHAT_MODEL,
+  FIREWORKS_FAST_MODEL,
+  fireworksLangChainOptions,
+} from '../../config/fireworks.js';
 
 // ============================================================================
 // Default LLM Configurations
@@ -17,28 +22,28 @@ import type { LLMConfig } from './types.js';
 export const DEFAULT_LLM_CONFIGS = {
   /** Main conversation LLM - balanced quality and speed */
   conversation: {
-    model: 'gpt-4o',
+    model: FIREWORKS_CHAT_MODEL,
     temperature: 0.7,
     maxTokens: 1024,
   } as LLMConfig,
-  
+
   /** Structured output LLM - for JSON responses */
   structured: {
-    model: 'gpt-4o',
+    model: FIREWORKS_CHAT_MODEL,
     temperature: 0.3,
     maxTokens: 2048,
   } as LLMConfig,
-  
+
   /** Fast LLM - for quick decisions and routing */
   fast: {
-    model: 'gpt-4o-mini',
+    model: FIREWORKS_FAST_MODEL,
     temperature: 0.1,
     maxTokens: 256,
   } as LLMConfig,
-  
+
   /** Creative LLM - for content generation */
   creative: {
-    model: 'gpt-4o',
+    model: FIREWORKS_CHAT_MODEL,
     temperature: 0.9,
     maxTokens: 2048,
   } as LLMConfig,
@@ -53,9 +58,10 @@ export const DEFAULT_LLM_CONFIGS = {
  */
 export function createLLM(config: LLMConfig): ChatOpenAI {
   return new ChatOpenAI({
-    modelName: config.model,
+    model: config.model,
     temperature: config.temperature,
     maxTokens: config.maxTokens,
+    ...fireworksLangChainOptions(),
   });
 }
 

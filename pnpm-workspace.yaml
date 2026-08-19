@@ -1,2 +1,16 @@
 packages:
   - apps/*
+
+onlyBuiltDependencies:
+  - '@ffmpeg-installer/darwin-arm64'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - core-js
+  - core-js-pure
+  - esbuild
+  - onnxruntime-node
+  - prisma
+  - protobufjs
+  - sharp
+  - tesseract.js
+  - unrs-resolver

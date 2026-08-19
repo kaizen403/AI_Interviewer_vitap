@@ -56,7 +56,7 @@ export interface VoiceConfig {
  * LLM configuration
  */
 export interface LLMConfig {
-  /** Model name (e.g., 'gpt-4o', 'gpt-4o-mini') */
+  /** Model name (e.g. Fireworks llama-v3p3-70b-instruct) */
   model: string;
 
   /** Temperature for response generation */

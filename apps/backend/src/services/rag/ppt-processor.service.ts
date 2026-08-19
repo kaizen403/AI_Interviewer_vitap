@@ -4,7 +4,6 @@
  * Parses PPT files and chunks content for embedding
  */
 
-import pptxParser from 'pptx-parser';
 import { readFile } from 'fs/promises';
 
 export interface SlideContent {
@@ -32,6 +31,10 @@ export async function parsePptFile(filePath: string): Promise<SlideContent[]> {
     try {
         const buffer = await readFile(filePath);
         const slides: SlideContent[] = [];
+
+        // pptx-parser is browser-oriented; load it only when parsing a file
+        const pptxParserMod = await import('pptx-parser');
+        const pptxParser = pptxParserMod.default ?? pptxParserMod;
 
         // Parse PPTX
         const parsed = await pptxParser(buffer);

@@ -10,7 +10,7 @@ services:
         value: production
       - key: DATABASE_URL
         sync: false
-      - key: OPENAI_API_KEY
+      - key: FIREWORKS_API_KEY
         sync: false
       - key: LIVEKIT_URL
         sync: false

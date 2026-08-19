@@ -16,7 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Capstone Reviewer",
-  description: "AI-powered project presentation review platform",
+  description: "Capstone project presentation review",
 };
 
 export default function RootLayout({

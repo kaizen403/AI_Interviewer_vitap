@@ -22,6 +22,7 @@ import * as deepgram from "@livekit/agents-plugin-deepgram";
 import * as silero from "@livekit/agents-plugin-silero";
 import * as cartesia from "@livekit/agents-plugin-cartesia";
 import { StateGraph, END, START } from "@langchain/langgraph";
+import { FIREWORKS_CHAT_MODEL, getFireworksApiKey } from "../../config/fireworks.js";
 
 import {
   type BaseAgentConfig,
@@ -333,7 +334,7 @@ export abstract class BaseVoiceAgent<
         `[${this.config.name}]   ✅ STT created: model=${this.config.stt.model}, language=${this.config.stt.language}`,
       );
 
-      console.log(`[${this.config.name}]   - Creating LLM (OpenAI)...`);
+      console.log(`[${this.config.name}]   - Creating LLM (Fireworks)...`);
       const llm = this.createVoiceLLM();
       console.log(
         `[${this.config.name}]   ✅ LLM created: model=${this.config.llm.model}, temp=${this.config.llm.temperature}`,
@@ -791,13 +792,14 @@ export abstract class BaseVoiceAgent<
   }
 
   /**
-   * Create LLM instance for voice (uses OpenAI plugin)
+   * Create LLM instance for voice (Fireworks via OpenAI-compatible plugin)
    */
   protected createVoiceLLM(): openai.LLM {
     const { llm } = this.config;
-    return new openai.LLM({
-      model: llm.model,
+    return openai.LLM.withFireworks({
+      model: llm.model || FIREWORKS_CHAT_MODEL,
       temperature: llm.temperature,
+      apiKey: getFireworksApiKey(),
     });
   }
 

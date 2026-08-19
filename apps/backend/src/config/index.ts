@@ -24,8 +24,8 @@ const envSchema = z.object({
   LIVEKIT_API_SECRET: z.string().min(1, 'LIVEKIT_API_SECRET is required'),
   LIVEKIT_URL: z.string().regex(/^wss?:\/\//, 'LIVEKIT_URL must start with ws:// or wss://'),
 
-  // LLM Provider
-  OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
+  // LLM Provider (Fireworks)
+  FIREWORKS_API_KEY: z.string().min(1, 'FIREWORKS_API_KEY is required'),
 
   // STT Provider
   DEEPGRAM_API_KEY: z.string().min(1, 'DEEPGRAM_API_KEY is required'),
@@ -72,7 +72,7 @@ const parseEnv = () => {
       console.warn('⚠️  Running in development mode with missing env vars');
       return envSchema.parse({
         ...process.env,
-        OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'missing',
+        FIREWORKS_API_KEY: process.env.FIREWORKS_API_KEY || process.env.OPENAI_API_KEY || 'missing',
         DEEPGRAM_API_KEY: process.env.DEEPGRAM_API_KEY || 'missing',
         LIVEKIT_API_KEY: process.env.LIVEKIT_API_KEY || 'devkey',
         LIVEKIT_API_SECRET: process.env.LIVEKIT_API_SECRET || 'secret',
@@ -106,8 +106,8 @@ export const config = {
   },
 
   llm: {
-    openaiApiKey: env.OPENAI_API_KEY,
-    model: 'gpt-4o',
+    fireworksApiKey: env.FIREWORKS_API_KEY,
+    model: process.env.LLM_MODEL || 'accounts/fireworks/models/llama-v3p3-70b-instruct',
     temperature: 0.7,
     maxTokens: 1000,
   },

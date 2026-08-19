@@ -95,7 +95,7 @@ async function start() {
 
     // Validate required environment variables in production
     if (isProduction) {
-      const requiredEnvVars = ['LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET', 'OPENAI_API_KEY'];
+      const requiredEnvVars = ['LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET', 'FIREWORKS_API_KEY'];
       const missing = requiredEnvVars.filter(v => !process.env[v]);
       if (missing.length > 0) {
         console.error(`❌ Missing required environment variables: ${missing.join(', ')}`);

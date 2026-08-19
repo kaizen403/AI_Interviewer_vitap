@@ -6,6 +6,11 @@
 import { ChatOpenAI } from '@langchain/openai';
 import { z } from 'zod';
 import { getStructuredLLM as coreGetStructuredLLM } from '../../core/llm.js';
+import {
+  FIREWORKS_CHAT_MODEL,
+  FIREWORKS_FAST_MODEL,
+  fireworksLangChainOptions,
+} from '../../../config/fireworks.js';
 
 // ============================================================================
 // LLM Instances
@@ -13,19 +18,20 @@ import { getStructuredLLM as coreGetStructuredLLM } from '../../core/llm.js';
 
 /**
  * Default LLM for project review tasks
- * Uses GPT-4o for high-quality analysis
  */
 export const reviewLLM = new ChatOpenAI({
-  modelName: process.env.OPENAI_MODEL || 'gpt-4o',
-  temperature: 0.3, // Lower temperature for consistent evaluation
+  model: FIREWORKS_CHAT_MODEL,
+  temperature: 0.3,
+  ...fireworksLangChainOptions(),
 });
 
 /**
  * Fast LLM for simple tasks like feedback generation
  */
 export const fastLLM = new ChatOpenAI({
-  modelName: 'gpt-4o-mini',
+  model: FIREWORKS_FAST_MODEL,
   temperature: 0.5,
+  ...fireworksLangChainOptions(),
 });
 
 // ============================================================================

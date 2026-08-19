@@ -101,8 +101,8 @@ export const ProjectReviewAgentConfigSchema = BaseAgentConfigSchema.extend({
 // ============================================================================
 
 export const EnvironmentConfigSchema = z.object({
-  // OpenAI
-  OPENAI_API_KEY: z.string().min(1, 'OpenAI API key is required'),
+  // Fireworks
+  FIREWORKS_API_KEY: z.string().min(1, 'Fireworks API key is required'),
   
   // LiveKit
   LIVEKIT_URL: z.string().url('Invalid LiveKit URL'),
@@ -209,7 +209,7 @@ export function validateEnvironment(): z.infer<typeof EnvironmentConfigSchema> {
  * Check if required environment variables are set (non-throwing)
  */
 export function checkRequiredEnv(): { valid: boolean; missing: string[] } {
-  const required = ['OPENAI_API_KEY', 'LIVEKIT_URL', 'LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET'];
+  const required = ['FIREWORKS_API_KEY', 'LIVEKIT_URL', 'LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET'];
   const missing = required.filter(key => !process.env[key]);
   
   return {
