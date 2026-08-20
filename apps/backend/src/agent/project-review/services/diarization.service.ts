@@ -3,7 +3,7 @@
  * Tracks and manages speaker identification in voice conversations
  * 
  * This service:
- * - Maps Deepgram speaker IDs to logical roles (agent/candidate)
+ * - Maps STT speaker IDs to logical roles (agent/candidate)
  * - Tracks speaker segments with timestamps
  * - Provides speaking time analytics
  * - Filters out background speakers
@@ -19,7 +19,7 @@ export interface SpeakerSegment {
     /** Logical speaker role */
     speaker: SpeakerRole;
 
-    /** Raw speaker ID from Deepgram (0, 1, 2...) */
+    /** Raw speaker ID from STT (0, 1, 2...) */
     speakerId: number;
 
     /** Transcribed text */
@@ -70,8 +70,8 @@ export interface SpeakerStats {
     avgUtteranceLength: number;
 }
 
-export interface DeepgramUtterance {
-    /** Speaker ID assigned by Deepgram */
+export interface STTUtterance {
+    /** Speaker ID assigned by the STT provider */
     speaker: number;
 
     /** Transcribed text */
@@ -121,7 +121,7 @@ export class DiarizationService {
     }
 
     /**
-     * Map a Deepgram speaker ID to a logical role
+     * Map an STT speaker ID to a logical role
      */
     mapSpeaker(speakerId: number, role: SpeakerRole): void {
         this.speakerMapping.set(speakerId, role);
@@ -156,7 +156,7 @@ export class DiarizationService {
     /**
      * Check if a segment should be considered background noise/voice
      */
-    private isBackgroundSegment(utterance: DeepgramUtterance): boolean {
+    private isBackgroundSegment(utterance: STTUtterance): boolean {
         // Low confidence = likely background noise
         if (utterance.confidence < this.confidenceThreshold) {
             return true;
@@ -206,9 +206,9 @@ export class DiarizationService {
     }
 
     /**
-     * Add a segment from Deepgram utterance
+     * Add a segment from an STT utterance
      */
-    addSegment(utterance: DeepgramUtterance): SpeakerSegment {
+    addSegment(utterance: STTUtterance): SpeakerSegment {
         const isBackground = this.isBackgroundSegment(utterance);
         const role = this.getSpeakerRole(utterance.speaker, isBackground);
 

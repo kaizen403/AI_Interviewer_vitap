@@ -27,13 +27,8 @@ const envSchema = z.object({
   // LLM Provider (Fireworks)
   FIREWORKS_API_KEY: z.string().min(1, 'FIREWORKS_API_KEY is required'),
 
-  // STT Provider
-  DEEPGRAM_API_KEY: z.string().min(1, 'DEEPGRAM_API_KEY is required'),
-
-  // TTS Providers
-  CARTESIA_API_KEY: z.string().optional(),
-  ELEVENLABS_API_KEY: z.string().optional(),
-  TTS_PROVIDER: z.enum(['cartesia', 'elevenlabs']).default('cartesia'),
+  // Voice (STT + TTS)
+  ELEVENLABS_API_KEY: z.string().min(1, 'ELEVENLABS_API_KEY is required'),
 
   // Database (PostgreSQL)
   POSTGRES_HOST: z.string().default('localhost'),
@@ -73,7 +68,7 @@ const parseEnv = () => {
       return envSchema.parse({
         ...process.env,
         FIREWORKS_API_KEY: process.env.FIREWORKS_API_KEY || process.env.OPENAI_API_KEY || 'missing',
-        DEEPGRAM_API_KEY: process.env.DEEPGRAM_API_KEY || 'missing',
+        ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY || process.env.ELEVEN_API_KEY || 'missing',
         LIVEKIT_API_KEY: process.env.LIVEKIT_API_KEY || 'devkey',
         LIVEKIT_API_SECRET: process.env.LIVEKIT_API_SECRET || 'secret',
         LIVEKIT_URL: process.env.LIVEKIT_URL || 'ws://localhost:7880',
@@ -113,15 +108,10 @@ export const config = {
   },
 
   stt: {
-    provider: 'deepgram' as const,
-    deepgramApiKey: env.DEEPGRAM_API_KEY,
-    model: 'nova-2',
-    language: 'en',
-    // Diarization settings - identifies different speakers
-    diarize: true,
-    utterances: true,
-    // Faster utterance end detection for lower latency (500ms)
-    utteranceEndMs: 500,
+    provider: 'elevenlabs' as const,
+    elevenlabsApiKey: env.ELEVENLABS_API_KEY,
+    model: process.env.STT_MODEL || 'scribe_v2_realtime',
+    language: process.env.STT_LANGUAGE || 'en',
   },
 
   // VAD (Voice Activity Detection) settings - OPTIMIZED FOR LOW LATENCY
@@ -145,17 +135,10 @@ export const config = {
   },
 
   tts: {
-    provider: env.TTS_PROVIDER,
-    cartesia: {
-      apiKey: env.CARTESIA_API_KEY,
-      // sonic-3 has 90ms latency but most natural voice quality
-      model: 'sonic-3',
-      voice: '6303e5fb-a0a7-48f9-bb1a-dd42c216dc5d',
-    },
-    elevenlabs: {
-      apiKey: env.ELEVENLABS_API_KEY,
-      voice: 'JBFqnCBsd6RMkjVDRZzb', // George voice
-    },
+    provider: 'elevenlabs' as const,
+    elevenlabsApiKey: env.ELEVENLABS_API_KEY,
+    model: process.env.TTS_MODEL || 'eleven_flash_v2_5',
+    voice: process.env.TTS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb',
   },
 
   database: {

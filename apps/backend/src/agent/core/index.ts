@@ -45,7 +45,7 @@ import { ProjectReviewAgent, type ProjectReviewAgentConfig } from '../project-re
 const DEFAULT_VOICE_PIPELINE_CONFIG = {
   name: 'Voice Agent',
   voice: {
-    voiceId: process.env.TTS_VOICE_ID || '6303e5fb-a0a7-48f9-bb1a-dd42c216dc5d',
+    voiceId: process.env.TTS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb',
     language: process.env.TTS_LANGUAGE || 'en',
     speed: 1.0,
   },
@@ -55,17 +55,16 @@ const DEFAULT_VOICE_PIPELINE_CONFIG = {
     maxTokens: parseInt(process.env.LLM_MAX_TOKENS || '1024', 10),
   },
   stt: {
-    provider: (process.env.STT_PROVIDER || 'deepgram') as 'deepgram' | 'whisper' | 'azure',
-    model: process.env.STT_MODEL || 'nova-2',
-    language: process.env.STT_LANGUAGE || 'en-US',
+    provider: 'elevenlabs' as const,
+    model: process.env.STT_MODEL || 'scribe_v2_realtime',
+    language: process.env.STT_LANGUAGE || 'en',
     punctuate: true,
     smartFormat: true,
   },
   tts: {
-    provider: (process.env.TTS_PROVIDER || 'cartesia') as 'cartesia' | 'elevenlabs' | 'azure',
-    // sonic-3 has 90ms latency but most natural voice quality
-    model: process.env.TTS_MODEL || 'sonic-3',
-    voiceId: process.env.TTS_VOICE_ID || '6303e5fb-a0a7-48f9-bb1a-dd42c216dc5d',
+    provider: 'elevenlabs' as const,
+    model: process.env.TTS_MODEL || 'eleven_flash_v2_5',
+    voiceId: process.env.TTS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb',
     language: process.env.TTS_LANGUAGE || 'en',
   },
   // VAD settings for low latency

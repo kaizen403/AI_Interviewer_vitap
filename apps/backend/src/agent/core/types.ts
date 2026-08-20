@@ -70,8 +70,8 @@ export interface LLMConfig {
  * STT configuration
  */
 export interface STTConfig {
-  /** Provider ('deepgram', 'whisper', etc.) */
-  provider: 'deepgram' | 'whisper' | 'azure';
+  /** Provider */
+  provider: 'elevenlabs';
 
   /** Model name */
   model: string;
@@ -122,8 +122,8 @@ export interface VADConfig {
  * TTS configuration
  */
 export interface TTSConfig {
-  /** Provider ('cartesia', 'elevenlabs', 'azure') */
-  provider: 'cartesia' | 'elevenlabs' | 'azure';
+  /** Provider */
+  provider: 'elevenlabs';
 
   /** Model name */
   model: string;

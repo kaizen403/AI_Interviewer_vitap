@@ -16,9 +16,9 @@ AI-powered capstone project presentation review system.
 │                              BACKEND (Express)                              │
 │                                                                             │
 │   REST API                           Voice Agent (LiveKit)                  │
-│   ├── /api/students                  ├── Deepgram STT                       │
+│   ├── /api/students                  ├── ElevenLabs STT                     │
 │   ├── /api/project-review            ├── Fireworks LLM (LangGraph)          │
-│   └── /api/livekit                   └── Cartesia TTS                       │
+│   └── /api/livekit                   └── ElevenLabs TTS                     │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                     ┌─────────────────┼─────────────────┐
@@ -62,7 +62,7 @@ docker compose up -d
 # Setup backend
 cd apps/backend
 cp .env.example .env
-# Fill in API keys (Fireworks, Deepgram, Cartesia)
+# Fill in API keys (Fireworks, ElevenLabs)
 # Frontend: cp apps/frontend/.env.example apps/frontend/.env.local
 pnpm prisma migrate dev
 pnpm prisma generate
@@ -85,8 +85,7 @@ Backend: http://localhost:3040
 | LIVEKIT_API_SECRET | LiveKit API secret |
 | LIVEKIT_URL | LiveKit WebSocket URL |
 | FIREWORKS_API_KEY | Fireworks API key |
-| DEEPGRAM_API_KEY | Deepgram API key |
-| CARTESIA_API_KEY | Cartesia API key |
+| ELEVENLABS_API_KEY | ElevenLabs API key (STT + TTS) |
 | R2_ACCESS_KEY_ID | Cloudflare R2 access key |
 | R2_SECRET_ACCESS_KEY | Cloudflare R2 secret |
 | R2_PUBLIC_URL | R2 public bucket URL |

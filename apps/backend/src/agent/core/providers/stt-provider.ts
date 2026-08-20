@@ -1,9 +1,9 @@
 /**
- * STT Provider - Deepgram Speech-to-Text
+ * STT Provider - ElevenLabs Scribe
  */
 
-import * as deepgram from "@livekit/agents-plugin-deepgram";
-import type { BaseAgentConfig } from "../types.js";
+import * as elevenlabs from "@livekit/agents-plugin-elevenlabs";
+import { getElevenLabsApiKey } from "../../../config/elevenlabs.js";
 import type { AgentLogger } from "../utils/index.js";
 
 export interface STTConfig {
@@ -14,21 +14,20 @@ export interface STTConfig {
 }
 
 /**
- * Create STT instance based on config
- * Using Deepgram nova-2 with optimized settings for low latency
+ * Create ElevenLabs realtime STT (Scribe)
  */
-export function createSTT(config: STTConfig, logger: AgentLogger): deepgram.STT {
-    const sttOptions: any = {
-        model: config.model as any,
-        language: config.language,
-        punctuate: config.punctuate ?? true,
-        smartFormat: config.smartFormat ?? true,
-        endpointing: 300,
-        interimResults: true,
-    };
+export function createSTT(config: STTConfig, logger: AgentLogger): elevenlabs.STT {
+    logger.info("🎙️ Using ElevenLabs Scribe STT");
 
-    logger.info("🎙️ Using Deepgram STT (nova-2) with optimized settings");
-    logger.debug("STT configuration", sttOptions);
-
-    return new deepgram.STT(sttOptions);
+    return new elevenlabs.STT({
+        apiKey: getElevenLabsApiKey(),
+        model: config.model || "scribe_v2_realtime",
+        languageCode: config.language?.split("-")[0] || "en",
+        serverVad: {
+            vadSilenceThresholdSecs: 0.5,
+            vadThreshold: 0.5,
+            minSpeechDurationMs: 100,
+            minSilenceDurationMs: 300,
+        },
+    });
 }

@@ -6,6 +6,8 @@ import * as silero from "@livekit/agents-plugin-silero";
 import type { JobProcess } from "@livekit/agents";
 import type { AgentLogger } from "../utils/index.js";
 
+type LoadedVAD = Awaited<ReturnType<typeof silero.VAD.load>>;
+
 export interface VADConfig {
     activationThreshold?: number;
     minSpeechDurationMs?: number;
@@ -22,11 +24,11 @@ export async function createVAD(
     proc: JobProcess,
     vadConfig: VADConfig | undefined,
     logger: AgentLogger
-): Promise<silero.VAD> {
+): Promise<LoadedVAD> {
     // Use preloaded VAD if available (from prewarm)
     if (proc.userData.vad) {
         logger.info("Using preloaded VAD from prewarm");
-        return proc.userData.vad as silero.VAD;
+        return proc.userData.vad as LoadedVAD;
     }
 
     // Create new VAD with custom settings for noise resistance
@@ -56,7 +58,7 @@ export async function createVAD(
 /**
  * Preload VAD for faster startup
  */
-export async function preloadVAD(vadConfig?: VADConfig): Promise<silero.VAD> {
+export async function preloadVAD(vadConfig?: VADConfig): Promise<LoadedVAD> {
     const options: any = {};
 
     if (vadConfig?.activationThreshold) {

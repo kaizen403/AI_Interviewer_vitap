@@ -1,8 +1,9 @@
 /**
- * TTS Provider - Cartesia Text-to-Speech
+ * TTS Provider - ElevenLabs
  */
 
-import * as cartesia from "@livekit/agents-plugin-cartesia";
+import * as elevenlabs from "@livekit/agents-plugin-elevenlabs";
+import { getElevenLabsApiKey } from "../../../config/elevenlabs.js";
 
 export interface TTSConfig {
     model: string;
@@ -11,12 +12,13 @@ export interface TTSConfig {
 }
 
 /**
- * Create TTS instance based on config
+ * Create ElevenLabs TTS instance
  */
-export function createTTS(config: TTSConfig): cartesia.TTS {
-    return new cartesia.TTS({
-        model: config.model,
-        voice: config.voiceId,
+export function createTTS(config: TTSConfig): elevenlabs.TTS {
+    return new elevenlabs.TTS({
+        apiKey: getElevenLabsApiKey(),
+        model: config.model || "eleven_flash_v2_5",
+        voiceId: config.voiceId,
         language: config.language,
     });
 }

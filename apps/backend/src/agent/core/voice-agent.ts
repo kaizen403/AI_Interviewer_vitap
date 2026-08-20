@@ -18,11 +18,11 @@ import {
 } from "@livekit/agents";
 import * as livekit from "@livekit/agents-plugin-livekit";
 import * as openai from "@livekit/agents-plugin-openai";
-import * as deepgram from "@livekit/agents-plugin-deepgram";
+import * as elevenlabs from "@livekit/agents-plugin-elevenlabs";
 import * as silero from "@livekit/agents-plugin-silero";
-import * as cartesia from "@livekit/agents-plugin-cartesia";
 import { StateGraph, END, START } from "@langchain/langgraph";
 import { FIREWORKS_CHAT_MODEL, getFireworksApiKey } from "../../config/fireworks.js";
+import { getElevenLabsApiKey } from "../../config/elevenlabs.js";
 
 import {
   type BaseAgentConfig,
@@ -83,7 +83,7 @@ export abstract class BaseVoiceAgent<
   protected currentState: TState | null = null;
   protected eventHandlers: Map<AgentEventType, AgentEventHandler[]> = new Map();
   protected session: voice.AgentSession | null = null;
-  protected vad: silero.VAD | null = null;
+  protected vad: Awaited<ReturnType<typeof silero.VAD.load>> | null = null;
   protected logger: AgentLogger;
   protected checkpointManager: CheckpointManager<TState>;
   protected ctx: JobContext | null = null; // Store context for data messages
@@ -305,7 +305,7 @@ export abstract class BaseVoiceAgent<
 
       // Get preloaded VAD
       console.log(`[${this.config.name}] 🎙️ Getting preloaded VAD...`);
-      this.vad = ctx.proc.userData.vad as silero.VAD;
+      this.vad = ctx.proc.userData.vad as Awaited<ReturnType<typeof silero.VAD.load>>;
       if (this.vad) {
         console.log(`[${this.config.name}] ✅ VAD loaded from proc.userData`);
       } else {
@@ -328,7 +328,7 @@ export abstract class BaseVoiceAgent<
         `[${this.config.name}] 🎛️ Creating voice pipeline components...`,
       );
 
-      console.log(`[${this.config.name}]   - Creating STT (Deepgram)...`);
+      console.log(`[${this.config.name}]   - Creating STT (ElevenLabs)...`);
       const stt = this.createSTT();
       console.log(
         `[${this.config.name}]   ✅ STT created: model=${this.config.stt.model}, language=${this.config.stt.language}`,
@@ -340,7 +340,7 @@ export abstract class BaseVoiceAgent<
         `[${this.config.name}]   ✅ LLM created: model=${this.config.llm.model}, temp=${this.config.llm.temperature}`,
       );
 
-      console.log(`[${this.config.name}]   - Creating TTS (Cartesia)...`);
+      console.log(`[${this.config.name}]   - Creating TTS (ElevenLabs)...`);
       const tts = this.createTTS();
       console.log(
         `[${this.config.name}]   ✅ TTS created: model=${this.config.tts.model}, voice=${this.config.tts.voiceId}`,
@@ -723,40 +723,37 @@ export abstract class BaseVoiceAgent<
   // -------------------------------------------------------------------------
 
   /**
-   * Create STT instance based on config
-   * Using Deepgram nova-2 - Cartesia STT not yet available in Node.js plugin
+   * Create STT instance — ElevenLabs Scribe realtime
    */
-  protected createSTT(): deepgram.STT {
+  protected createSTT(): elevenlabs.STT {
     const { stt } = this.config;
 
-    // Optimized Deepgram settings for low latency
-    const sttOptions: any = {
-      model: stt.model as any,
-      language: stt.language,
-      punctuate: stt.punctuate ?? true,
-      smartFormat: stt.smartFormat ?? true,
-      // Fast utterance end detection for quicker turn-taking
-      endpointing: 300, // 300ms silence to end utterance
-      interimResults: true, // Get faster interim results
-    };
+    this.logger.info("🎙️ Using ElevenLabs Scribe STT");
 
-    this.logger.info("🎙️ Using Deepgram STT (nova-2) with optimized settings");
-    this.logger.debug("STT configuration", sttOptions);
-
-    return new deepgram.STT(sttOptions);
+    return new elevenlabs.STT({
+      apiKey: getElevenLabsApiKey(),
+      model: stt.model || "scribe_v2_realtime",
+      languageCode: stt.language?.split("-")[0] || "en",
+      serverVad: {
+        vadSilenceThresholdSecs: 0.5,
+        vadThreshold: 0.5,
+        minSpeechDurationMs: 100,
+        minSilenceDurationMs: 300,
+      },
+    });
   }
 
   /**
    * Create VAD (Voice Activity Detection) with noise-resistant settings
    * Uses higher thresholds to ignore background voices and noise
    */
-  protected async createVAD(proc: JobProcess): Promise<silero.VAD> {
+  protected async createVAD(proc: JobProcess): Promise<Awaited<ReturnType<typeof silero.VAD.load>>> {
     const vadConfig = this.config.vad;
 
     // Use preloaded VAD if available (from prewarm)
     if (proc.userData.vad) {
       this.logger.info("Using preloaded VAD from prewarm");
-      return proc.userData.vad as silero.VAD;
+      return proc.userData.vad as Awaited<ReturnType<typeof silero.VAD.load>>;
     }
 
     // Create new VAD with custom settings for noise resistance
@@ -804,13 +801,14 @@ export abstract class BaseVoiceAgent<
   }
 
   /**
-   * Create TTS instance based on config
+   * Create TTS instance — ElevenLabs
    */
-  protected createTTS(): cartesia.TTS {
+  protected createTTS(): elevenlabs.TTS {
     const { tts } = this.config;
-    return new cartesia.TTS({
-      model: tts.model,
-      voice: tts.voiceId,
+    return new elevenlabs.TTS({
+      apiKey: getElevenLabsApiKey(),
+      model: tts.model || "eleven_flash_v2_5",
+      voiceId: tts.voiceId,
       language: tts.language,
     });
   }

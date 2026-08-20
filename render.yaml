@@ -12,6 +12,8 @@ services:
         sync: false
       - key: FIREWORKS_API_KEY
         sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
       - key: LIVEKIT_URL
         sync: false
       - key: LIVEKIT_API_KEY

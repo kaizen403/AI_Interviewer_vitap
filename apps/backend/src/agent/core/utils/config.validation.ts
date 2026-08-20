@@ -31,8 +31,8 @@ export const LLMConfigSchema = z.object({
  * STT configuration schema
  */
 export const STTConfigSchema = z.object({
-  provider: z.enum(['deepgram', 'whisper', 'azure']).default('deepgram'),
-  model: z.string().default('nova-2'),
+  provider: z.enum(['elevenlabs']).default('elevenlabs'),
+  model: z.string().default('scribe_v2_realtime'),
   language: z.string().default('en'),
   punctuate: z.boolean().optional(),
   smartFormat: z.boolean().optional(),
@@ -42,8 +42,8 @@ export const STTConfigSchema = z.object({
  * TTS configuration schema
  */
 export const TTSConfigSchema = z.object({
-  provider: z.enum(['cartesia', 'elevenlabs', 'azure']).default('cartesia'),
-  model: z.string().default('sonic'),
+  provider: z.enum(['elevenlabs']).default('elevenlabs'),
+  model: z.string().default('eleven_flash_v2_5'),
   voiceId: z.string().min(1, 'Voice ID is required'),
   language: z.string().default('en'),
 });
@@ -109,11 +109,7 @@ export const EnvironmentConfigSchema = z.object({
   LIVEKIT_API_KEY: z.string().min(1, 'LiveKit API key is required'),
   LIVEKIT_API_SECRET: z.string().min(1, 'LiveKit API secret is required'),
   
-  // Deepgram (optional)
-  DEEPGRAM_API_KEY: z.string().optional(),
-  
-  // Cartesia (optional)
-  CARTESIA_API_KEY: z.string().optional(),
+  ELEVENLABS_API_KEY: z.string().optional(),
   
   // Database
   DATABASE_URL: z.string().optional(),
@@ -209,7 +205,7 @@ export function validateEnvironment(): z.infer<typeof EnvironmentConfigSchema> {
  * Check if required environment variables are set (non-throwing)
  */
 export function checkRequiredEnv(): { valid: boolean; missing: string[] } {
-  const required = ['FIREWORKS_API_KEY', 'LIVEKIT_URL', 'LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET'];
+  const required = ['FIREWORKS_API_KEY', 'ELEVENLABS_API_KEY', 'LIVEKIT_URL', 'LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET'];
   const missing = required.filter(key => !process.env[key]);
   
   return {
